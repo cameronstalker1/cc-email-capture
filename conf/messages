@@ -1,0 +1,3 @@
+# Validation errors
+content_type.invalid = Invalid request content type
+unknown.failure = Unknown reason. Dependent system did not provide failure reason

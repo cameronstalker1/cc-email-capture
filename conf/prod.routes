@@ -1,0 +1,4 @@
+# Add all the application routes to the app.routes file
+->         /cc-email-capture          app.Routes
+->         /                          health.Routes
+GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics

@@ -1,0 +1,5 @@
+# microservice specific routes
+
+POST     /                       controllers.EmailCaptureController.captureEmail
+
+POST    /:emailAddress/event     controllers.EmailCaptureController.receiveEvent(emailAddress : String)
