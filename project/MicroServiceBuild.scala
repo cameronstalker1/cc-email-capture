@@ -33,7 +33,7 @@ private object AppDependencies {
   private val emailAddressVersion = "1.1.0"
   private val playConfigVersion = "2.1.0"
   private val playAuthorisationVersion = "3.3.0"
-  private val jsonEncryptionVersion = "2.0.0"
+  private val jsonEncryptionVersion = "2.1.0"
 
   private val hmrcTestVersion = "1.8.0"
   private val scalaTestVersion = "2.2.6"

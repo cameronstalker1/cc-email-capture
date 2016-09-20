@@ -49,8 +49,11 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       retrieveManaged := true,
       resolvers := Seq(
-        Resolver.typesafeRepo("releases")
-      )
+        Resolver.bintrayRepo("hmrc", "releases")
+      ),
+      scalaVersion := "2.11.7",
+      crossScalaVersions := Seq("2.11.7"),
+      ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
     )
 }
 
