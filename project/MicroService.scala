@@ -47,7 +47,8 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       retrieveManaged := true,
       resolvers := Seq(
-        Resolver.bintrayRepo("hmrc", "releases")
+        Resolver.bintrayRepo("hmrc", "releases"),
+        Resolver.typesafeRepo("releases")
       ),
       scalaVersion := "2.11.7",
       crossScalaVersions := Seq("2.11.7"),
