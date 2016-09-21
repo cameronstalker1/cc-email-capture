@@ -16,11 +16,9 @@
 
 import sbt.Keys._
 import sbt._
-import scoverage.ScoverageKeys
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning
 
 trait MicroService {
@@ -34,7 +32,7 @@ trait MicroService {
   lazy val scoverageSettings = {
     import scoverage._
     Seq(
-      ScoverageKeys.coverageExcludedPackages :=  "<empty>;Reverse.*;service.*;config.*;prod.*;app.Routes.*;.*BuildInfo.*;view.*;",
+      ScoverageKeys.coverageExcludedPackages :=  "<empty>;Reverse.*;service.*;config.*;prod.*;app.Routes.*;.*BuildInfo.*;view.*;repositories.*;",
       ScoverageKeys.coverageMinimum := 95,
       ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true
@@ -49,7 +47,8 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       retrieveManaged := true,
       resolvers := Seq(
-        Resolver.bintrayRepo("hmrc", "releases")
+        Resolver.bintrayRepo("hmrc", "releases"),
+        Resolver.typesafeRepo("releases")
       ),
       scalaVersion := "2.11.7",
       crossScalaVersions := Seq("2.11.7"),

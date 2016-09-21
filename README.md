@@ -1,5 +1,4 @@
-**cc-email-capture**
-------------------
+# cc-email-capture
 
 [![Build Status](https://travis-ci.org/hmrc/cc-email-capture.svg?branch=master)](https://travis-ci.org/hmrc/cc-email-capture) [ ![Download](https://api.bintray.com/packages/hmrc/releases/cc-email-capture/images/download.svg) ](https://bintray.com/hmrc/releases/cc-email-capture/_latestVersion)
 
@@ -28,18 +27,21 @@ been input, an error message will be presented on the page, asking for the
 user to re-enter a genuine email address.
 
 
-* **Endpoint URL :** /cc-email-capture
+## Endpoint URL
+
+  /cc-email-capture
 
 
-* **Port Number :** 9369
+## Port Number
+
+  9369
 
 
-* **Method:**
+## Method
 
   All requests are of type `POST`.
 
 
-  License
-  ---
+## License
 
   This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
