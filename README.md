@@ -27,10 +27,14 @@ been input, an error message will be presented on the page, asking for the
 user to re-enter a genuine email address.
 
 
-## Endpoint URL : /cc-email-capture
+## Endpoint URL
+
+  /cc-email-capture
 
 
-## Port Number : 9369
+## Port Number
+
+  9369
 
 
 ## Method
