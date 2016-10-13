@@ -17,11 +17,12 @@
 package controllers
 
 import fixtures.RegistrationData
+import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import play.api.test.FakeRequest
-import services.EmailService
+import services.{RegistartionService, EmailService}
 import uk.gov.hmrc.play.http.HttpResponse
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.test.Helpers._
@@ -32,6 +33,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   val fakeRequest: FakeRequest[_] = FakeRequest()
   val registrationController: RegistrationController = new RegistrationController {
     override val emailService = mock[EmailService]
+    override val registartionService: RegistartionService = mock[RegistartionService]
   }
 
   "subscribe" should {
@@ -66,11 +68,31 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       bodyOf(result) shouldBe "Checking email returned status: 500"
     }
 
-    s"return OK for valid payload: '${validPayload}'" in {
+    s"return OK for valid payload: '${validPayload}' if data saving fail" in {
       when(
         registrationController.emailService.validEmail(anyString())(any())
       ).thenReturn(
         Future.successful(HttpResponse(OK))
+      )
+      when(
+        registrationController.registartionService.insertOrUpdate(any[Registration]())
+      ).thenReturn(
+        Future.successful(false)
+      )
+      val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
+      status(result) shouldBe INTERNAL_SERVER_ERROR
+    }
+
+    s"return OK for valid payload: '${validPayload}' if data is saved successfully" in {
+      when(
+        registrationController.emailService.validEmail(anyString())(any())
+      ).thenReturn(
+        Future.successful(HttpResponse(OK))
+      )
+      when(
+        registrationController.registartionService.insertOrUpdate(any[Registration]())
+      ).thenReturn(
+        Future.successful(true)
       )
       val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
       status(result) shouldBe OK

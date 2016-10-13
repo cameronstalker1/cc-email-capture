@@ -19,7 +19,7 @@ package controllers
 import models.Registration
 import play.api.Logger
 import play.api.libs.json.JsObject
-import services.EmailService
+import services.{RegistartionService, EmailService}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.mvc._
@@ -27,22 +27,29 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object RegistrationController extends RegistrationController {
-  override val emailService = EmailService
+  override val emailService: EmailService = EmailService
+  override val registartionService: RegistartionService = RegistartionService
 }
 
 trait RegistrationController extends BaseController with ServicesConfig {
   val emailService: EmailService
+  val registartionService: RegistartionService
 
   def register = Action.async(parse.json[JsObject]) {
     implicit request =>
       request.body.asOpt[Registration] match {
         case Some(registration) => {
-          emailService.validEmail(registration.emailAddress).map { validationResult =>
+          emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
             validationResult.status match {
-              case OK => Ok // TODO
+              case OK => {
+                registartionService.insertOrUpdate(registration).map {
+                  case true => Ok // TODO: Send mail
+                  case false => InternalServerError
+                }
+              }
               case _ => {
                 Logger.warn(s"\n ========= SubscribeController: Checking email return status: ${validationResult.status} ========= \n")
-                NotFound(s"Checking email returned status: ${validationResult.status}")
+                Future(NotFound(s"Checking email returned status: ${validationResult.status}"))
               }
             }
           }.recover {
