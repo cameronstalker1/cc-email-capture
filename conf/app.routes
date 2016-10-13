@@ -3,3 +3,5 @@
 POST     /                       controllers.EmailCaptureController.captureEmail
 
 POST    /:emailAddress/event     controllers.EmailCaptureController.receiveEvent(emailAddress : String)
+
+POST    /register-interest       controllers.RegistrationController.register
