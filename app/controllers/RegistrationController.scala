@@ -52,6 +52,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   }
 
   def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
+//    saveAndSendEmail(registration, host)
     emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
       validationResult.status match {
         case OK => saveAndSendEmail(registration, host)
