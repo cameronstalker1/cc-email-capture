@@ -29,6 +29,7 @@ class RegistartionServiceSpec extends UnitSpec with MockitoSugar with Registrati
 
   val registartionService: RegistartionService = new RegistartionService {
     override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+    override val mongoConnectionUri: String = ""
   }
 
   val results: List[(Boolean, String, Future[Boolean])] = List(

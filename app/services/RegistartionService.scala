@@ -17,16 +17,22 @@
 package services
 
 import models.Registration
+import play.Play
 import play.api.Logger
+import reactivemongo.api.FailoverStrategy
 import repositories._
+import uk.gov.hmrc.mongo.SimpleMongoConnection
+import uk.gov.hmrc.play.config.RunMode
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object RegistartionService extends RegistartionService {
-  override val registartionRepository: RegistartionRepository = Repositories.registartionRepository
+object RegistartionService extends RegistartionService with RunMode {
+  override val mongoConnectionUri: String = Play.application().configuration().getString(s"$env.mongodb.uri")
+  override val registartionRepository: RegistartionRepository = new RegistartionRepository
 }
 
-trait RegistartionService {
+trait RegistartionService extends SimpleMongoConnection {
+  val failoverStrategy: Option[FailoverStrategy] = None
   val registartionRepository: RegistartionRepository
 
   def insertOrUpdate(registration: Registration): Future[Boolean] = {
