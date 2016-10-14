@@ -41,7 +41,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   def register = Action.async(parse.json[JsObject]) {
     implicit request =>
       request.body.asOpt[Registration] match {
-        case Some(registration) => processRegistration(registration, request.host)
+        case Some(registration) => Future(Ok) // processRegistration(registration, request.host)
         case _ => {
           Logger.warn("\n ========= SubscribeController: Empty/Invalid JSON received ========= \n")
           Future.successful(
