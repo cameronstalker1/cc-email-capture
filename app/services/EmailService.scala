@@ -17,7 +17,7 @@
 package services
 
 import config.WSHttp
-import models.{SendEmailRequest, Message, IsValidEmail}
+import models.{Registration, SendEmailRequest, Message, IsValidEmail}
 import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.emailaddress.EmailAddress
@@ -65,21 +65,42 @@ trait EmailService extends ServicesConfig {
   }
 
   def sendEmail(userData: Message, host : String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    val toList: List[EmailAddress] = List(EmailAddress(userData.emailAddress))
-    val params: Map[String, String] = Map("emailAddress" -> userData.emailAddress)
-    val emailData: SendEmailRequest = SendEmailRequest(to = toList, templateId = "childcare_registration_email",  parameters = params, force = false,
-      eventUrl = Some("http://" + host + controllers.routes.EmailCaptureController.receiveEvent(userData.emailAddress).url))
-      httpPostRequest.POST[SendEmailRequest, HttpResponse](serviceUrl + "/send-templated-email", emailData).map {
-        result =>
-          Logger.info(s"\n ========= EmailService.sendEmail: ${userData.toString} sent successfully ========= \n")
-          result
-      } recover {
-        case e : BadGatewayException =>
-          Logger.warn(s"\n ========= EmailService.sendEmail: BadGatewayException while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
-          HttpResponse.apply(BAD_GATEWAY)
-        case e : Exception =>
-          Logger.warn(s"\n ========= EmailService.sendEmail: Exception while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
-          HttpResponse.apply(INTERNAL_SERVER_ERROR)
-      }
+
+    send("childcare_registration_email", userData.emailAddress, host, "cc-frontend")
   }
+
+  def sendRegistrationEmail(registrationData: Registration, host: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+
+    send("childcare_schemes_interest_email", registrationData.emailAddress, host, "childcare-interest")
+  }
+
+  def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+
+    val toList: List[EmailAddress] = List(EmailAddress(email))
+    val params: Map[String, String] = Map("emailAddress" -> email)
+    val eventUrl = Some("http://" + host + controllers.routes.EmailCaptureController.receiveEvent(email, source).url)
+
+    val emailData: SendEmailRequest = SendEmailRequest(
+      to = toList,
+      templateId = templateId,
+      parameters = params,
+      force = false,
+      eventUrl = eventUrl
+    )
+
+    httpPostRequest.POST[SendEmailRequest, HttpResponse](serviceUrl + "/send-templated-email", emailData).map {
+      result =>
+        Logger.info(s"\n ========= EmailService.sendEmail: ${email} sent successfully ========= \n")
+        result
+    } recover {
+      case e : BadGatewayException =>
+        Logger.error(s"\n ========= EmailService.sendEmail: BadGatewayException while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
+        HttpResponse.apply(BAD_GATEWAY)
+      case e : Exception =>
+        Logger.error(s"\n ========= EmailService.sendEmail: Exception while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
+        HttpResponse.apply(INTERNAL_SERVER_ERROR)
+    }
+  }
+
+
 }

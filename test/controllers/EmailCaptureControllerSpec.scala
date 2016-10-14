@@ -280,27 +280,27 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
 
     "receive event - return 200 status when a valid json is received with eventType as Sent" in new Setup {
       val callBackResponseJson = """{"events": [ {"event": "Sent", "detected": "2015-07-02T08:26:39.035Z" }]}"""
-      val result = mockController.receiveEvent("test@test.com").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
+      val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
       status(result) shouldBe 200
     }
 
     "receive event - return 200 status when a valid json is received with eventType as Not present in call back list" in new Setup {
       val callBackResponseJson = """{"events": [ {"event": "Bounce", "detected": "2015-07-02T08:26:39.035Z" }]}"""
-      val result = mockController.receiveEvent("test@test.com").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
+      val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
       status(result) shouldBe 200
     }
 
     "receive event - return 500 status when a invalid json is received" in new Setup {
       val callBackResponseJson = """{"eventInvalid": [ {"event": "Sent", "detected": "2015-07-02T08:26:39.035Z" }]}"""
-      val result = mockController.receiveEvent("test@test.com").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
+      val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
       status(result) shouldBe 500
     }
 
     "receive event - return 500 status when invalid content Type is received" in new Setup {
-      val result = mockController.receiveEvent("test@test.com").apply(FakeRequest().withTextBody("You naughty!"))
+      val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withTextBody("You naughty!"))
 
       whenReady(result) {
         result =>
