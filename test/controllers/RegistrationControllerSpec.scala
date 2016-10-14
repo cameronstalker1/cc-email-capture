@@ -21,22 +21,39 @@ import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
+import play.api.mvc.Result
 import play.api.test.FakeRequest
 import services.{RegistartionService, EmailService}
-import uk.gov.hmrc.play.http.HttpResponse
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
+import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import play.api.test.Helpers._
 import scala.concurrent.Future
 
-class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData {
+class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
 
   val fakeRequest: FakeRequest[_] = FakeRequest()
-  val registrationController: RegistrationController = new RegistrationController {
-    override val emailService = mock[EmailService]
-    override val registartionService: RegistartionService = mock[RegistartionService]
+  implicit val hc: HeaderCarrier = new HeaderCarrier()
+
+  "verify that controller is set up correctly" should {
+
+    "use rhe right EmailService" in {
+      RegistrationController.emailService shouldBe EmailService
+    }
+
+    "use rhe right RegistartionService" in {
+      RegistrationController.registartionService shouldBe RegistartionService
+    }
+
   }
 
   "subscribe" should {
+
+    val registrationController: RegistrationController = new RegistrationController {
+      override val emailService = mock[EmailService]
+      override val registartionService: RegistartionService = mock[RegistartionService]
+
+      override def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
+    }
 
     invalidPayloads.foreach { payload =>
       s"return BAD_REQUEST for invalid payload: '${payload.toString()}'" in {
@@ -46,58 +63,95 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       }
     }
 
-    "return INTERNAL_SERVER_ERROR if email validation throws exception" in {
-      when(
-        registrationController.emailService.validEmail(anyString())(any())
-      ).thenReturn(
-        Future.failed(new RuntimeException)
-      )
-      val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
-      status(result) shouldBe INTERNAL_SERVER_ERROR
-      bodyOf(result) shouldBe "Exception while checking email"
-    }
-
-    "return NOT_FOUND if email validation returns any status different than OK" in {
-      when(
-        registrationController.emailService.validEmail(anyString())(any())
-      ).thenReturn(
-        Future.successful(HttpResponse(INTERNAL_SERVER_ERROR))
-      )
-      val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
-      status(result) shouldBe NOT_FOUND
-      bodyOf(result) shouldBe "Checking email returned status: 500"
-    }
-
-    s"return OK for valid payload: '${validPayload}' if data saving fail" in {
-      when(
-        registrationController.emailService.validEmail(anyString())(any())
-      ).thenReturn(
-        Future.successful(HttpResponse(OK))
-      )
-      when(
-        registrationController.registartionService.insertOrUpdate(any[Registration]())
-      ).thenReturn(
-        Future.successful(false)
-      )
-      val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
-      status(result) shouldBe INTERNAL_SERVER_ERROR
-    }
-
-    s"return OK for valid payload: '${validPayload}' if data is saved successfully" in {
-      when(
-        registrationController.emailService.validEmail(anyString())(any())
-      ).thenReturn(
-        Future.successful(HttpResponse(OK))
-      )
-      when(
-        registrationController.registartionService.insertOrUpdate(any[Registration]())
-      ).thenReturn(
-        Future.successful(true)
-      )
+    "return the result of processRegistration if valid payload is given" in {
       val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
       status(result) shouldBe OK
     }
 
   }
+
+  "processRegistration" should {
+
+    val registrationController: RegistrationController = new RegistrationController {
+      override val emailService = mock[EmailService]
+      override val registartionService: RegistartionService = mock[RegistartionService]
+
+      override def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
+    }
+
+    val testCases: List[(String, Future[HttpResponse], Int)] = List(
+      ("return the result of saveAndSendEmail if validation is successful", Future.successful(HttpResponse(OK)), ACCEPTED),
+      ("return the result of NOT_FOUND if validation failed", Future.successful(HttpResponse(INTERNAL_SERVER_ERROR)), NOT_FOUND),
+      ("return the result of INTERNAL_SERVER_ERROR if validation throws exception", Future.failed(new RuntimeException), INTERNAL_SERVER_ERROR)
+    )
+
+    testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
+      testMessage in {
+        when(
+          registrationController.emailService.validEmail(anyString())(any())
+        ).thenReturn(
+          mockResponse
+        )
+
+        val result = await(registrationController.processRegistration(registration, "host"))
+        status(result) shouldBe functionStatus
+      }
+    }
+  }
+
+  "saveAndSendEmail" should {
+    val registrationController: RegistrationController = new RegistrationController {
+      override val emailService = mock[EmailService]
+      override val registartionService: RegistartionService = mock[RegistartionService]
+
+      override def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
+    }
+
+    val testCases: List[(String, Future[Boolean], Int)] = List(
+      ("return the result of sendEmail if saving data is successful", Future.successful(true), ACCEPTED),
+      ("return the result of INTERNAL_SERVER_ERROR if saving data failed", Future.successful(false), INTERNAL_SERVER_ERROR)
+    )
+
+    testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
+      testMessage in {
+        when(
+          registrationController.registartionService.insertOrUpdate(any[Registration])
+        ).thenReturn(
+          mockResponse
+        )
+
+        val result = await(registrationController.saveAndSendEmail(registration, "host"))
+        status(result) shouldBe functionStatus
+      }
+    }
+  }
+
+  "sendEmail" should {
+    val registrationController: RegistrationController = new RegistrationController {
+      override val emailService = mock[EmailService]
+      override val registartionService: RegistartionService = mock[RegistartionService]
+    }
+
+    val testCases: List[(String, Future[HttpResponse], Int)] = List(
+      ("return the result of OK if sending email returns OK", Future.successful(HttpResponse(ACCEPTED)), OK),
+      ("return the result of BAD_GATEWAY if sending email returns BAD_GATEWAY", Future.successful(HttpResponse(BAD_GATEWAY)), BAD_GATEWAY),
+      ("return the result of INTERNAL_SERVER_ERROR if sending email returns different result", Future.successful(HttpResponse(BAD_REQUEST)), INTERNAL_SERVER_ERROR)
+    )
+
+    testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
+      testMessage in {
+        when(
+          registrationController.emailService.sendRegistrationEmail(any[Registration], anyString)(any[HeaderCarrier])
+        ).thenReturn(
+          mockResponse
+        )
+
+        val result = await(registrationController.sendEmail(registration, "host"))
+        status(result) shouldBe functionStatus
+      }
+    }
+
+  }
+
 
 }

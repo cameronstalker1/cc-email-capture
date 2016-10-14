@@ -93,10 +93,10 @@ trait EmailService extends ServicesConfig {
         result
     } recover {
       case e : BadGatewayException =>
-        Logger.warn(s"\n ========= EmailService.sendEmail: BadGatewayException while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
+        Logger.error(s"\n ========= EmailService.sendEmail: BadGatewayException while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
         HttpResponse.apply(BAD_GATEWAY)
       case e : Exception =>
-        Logger.warn(s"\n ========= EmailService.sendEmail: Exception while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
+        Logger.error(s"\n ========= EmailService.sendEmail: Exception while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
         HttpResponse.apply(INTERNAL_SERVER_ERROR)
     }
   }

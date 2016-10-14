@@ -16,13 +16,14 @@
 
 package fixtures
 
+import models.Registration
 import play.api.libs.json.{Json, JsObject}
 
 trait RegistrationData {
-  val validPayload: JsObject = Json.obj(
-    "location" -> "england",
-    "emailAddress" -> "example@example.example"
-  )
+
+  val registration: Registration = Registration("england", "example@example.example")
+
+  val validPayload: JsObject = Json.toJson(registration).as[JsObject]
 
   val invalidPayloads: List[JsObject] = List(
     Json.obj(),

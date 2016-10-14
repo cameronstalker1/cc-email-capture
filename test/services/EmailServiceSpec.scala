@@ -16,6 +16,7 @@
 
 package services
 
+import fixtures.RegistrationData
 import models.{Registration, SendEmailRequest}
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Writes
@@ -27,7 +28,7 @@ import org.mockito.Matchers._
 import play.api.test.Helpers._
 import scala.concurrent.Future
 
-class EmailServiceSpec extends UnitSpec with MockitoSugar {
+class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier()
 
@@ -44,8 +45,8 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar {
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
       ("send a succesful email", Future.successful(HttpResponse(OK)), OK),
-      ("Return BadGateway if posts throws badGateway exception", Future.failed(new BadGatewayException("Bad gateway")), BAD_GATEWAY),
-      ("Return INTERNAL_SERVER_ERROR if posts throws any exception", Future.failed(new Exception("Bad gateway")), INTERNAL_SERVER_ERROR)
+      ("return BAD_GATEWAY if posts throws badGateway exception", Future.failed(new BadGatewayException("Bad gateway")), BAD_GATEWAY),
+      ("return INTERNAL_SERVER_ERROR if posts throws any exception", Future.failed(new Exception("Exception")), INTERNAL_SERVER_ERROR)
     )
 
     testCases.foreach { case (testMessage, mockResult, expectedStatus) =>
@@ -56,7 +57,7 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar {
             mockResult
           )
 
-          val result = await(emailService.send("templateID", "example@eg.com", "host"))
+          val result = await(emailService.send("templateID", registration.emailAddress, "host"))
           result.status shouldBe expectedStatus
         }
     }
@@ -73,8 +74,9 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar {
 
       override def send(templateId: String, email: String, host: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.successful(HttpResponse(OK))
     }
-    "Return the result of send" in{
-      val result = emailService.sendRegistrationEmail(Registration("Ireland", "example@example.com"), "Host")
+
+    "return the result of send" in{
+      val result = emailService.sendRegistrationEmail(registration, "host")
       result.status shouldBe OK
     }
 

@@ -16,6 +16,7 @@
 
 package services
 
+import fixtures.RegistrationData
 import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
@@ -24,7 +25,7 @@ import repositories.RegistartionRepository
 import uk.gov.hmrc.play.test.UnitSpec
 import scala.concurrent.Future
 
-class RegistartionServiceSpec extends UnitSpec with MockitoSugar {
+class RegistartionServiceSpec extends UnitSpec with MockitoSugar with RegistrationData {
 
   val registartionService: RegistartionService = new RegistartionService {
     override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
@@ -46,7 +47,7 @@ class RegistartionServiceSpec extends UnitSpec with MockitoSugar {
           Future.successful(res)
         )
 
-        val result = await(registartionService.insertOrUpdate(Registration("england", "example@example.example")))
+        val result = await(registartionService.insertOrUpdate(registration))
         result shouldBe res
       }
     }

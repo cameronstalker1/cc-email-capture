@@ -21,6 +21,7 @@ import play.api.Logger
 import play.api.libs.json.JsObject
 import services.{RegistartionService, EmailService}
 import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,27 +39,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   def register = Action.async(parse.json[JsObject]) {
     implicit request =>
       request.body.asOpt[Registration] match {
-        case Some(registration) => {
-          emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
-            validationResult.status match {
-              case OK => {
-                registartionService.insertOrUpdate(registration).map {
-                  case true => Ok // TODO: Send mail
-                  case false => InternalServerError
-                }
-              }
-              case _ => {
-                Logger.warn(s"\n ========= SubscribeController: Checking email return status: ${validationResult.status} ========= \n")
-                Future(NotFound(s"Checking email returned status: ${validationResult.status}"))
-              }
-            }
-          }.recover {
-            case ex: Exception => {
-              Logger.warn(s"\n ========= SubscribeController: Exception while checking email: ${ex.getMessage} ========= \n")
-              InternalServerError("Exception while checking email")
-            }
-          }
-        }
+        case Some(registration) => processRegistration(registration, request.host)
         case _ => {
           Logger.warn("\n ========= SubscribeController: Empty/Invalid JSON received ========= \n")
           Future.successful(
@@ -66,7 +47,48 @@ trait RegistrationController extends BaseController with ServicesConfig {
           )
         }
       }
+  }
 
+  def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
+    emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
+      validationResult.status match {
+        case OK => saveAndSendEmail(registration, host)
+        case _ => {
+          Logger.warn(s"\n ========= SubscribeController: Checking email return status: ${validationResult.status} ========= \n")
+          Future(NotFound(s"Checking email returned status: ${validationResult.status}"))
+        }
+      }
+    }.recover {
+      case ex: Exception => {
+        Logger.error(s"\n ========= SubscribeController: Exception while checking email: ${ex.getMessage} ========= \n")
+        InternalServerError("Exception while checking email")
+      }
+    }
+  }
+
+  def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
+    registartionService.insertOrUpdate(registration).flatMap {
+      case true => sendEmail(registration, host)
+      case false => {
+        Logger.warn(s"******** SubscribeController.saveAndSendEmail: Inser/Update failed ******")
+        Future(InternalServerError)
+      }
+    }
+  }
+
+  def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
+    emailService.sendRegistrationEmail(registration, host).map { result =>
+      result.status match {
+        case ACCEPTED =>
+          Ok
+        case BAD_GATEWAY =>
+          Logger.warn("******** SubscribeController.sendEmail: Bad Gateway Error ******")
+          BadGateway
+        case _ =>
+          Logger.warn("******** SubscribeController.sendEmail: Internal Server Error ******")
+          InternalServerError
+      }
+    }
   }
 
 }
