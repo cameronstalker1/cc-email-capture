@@ -23,7 +23,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import play.api.mvc.Result
 import play.api.test.FakeRequest
-import services.{RegistartionService, EmailService}
+import services.{AuditEvents, RegistartionService, EmailService}
 import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
 import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import play.api.test.Helpers._
@@ -51,6 +51,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
       override val registartionService: RegistartionService = mock[RegistartionService]
+      override val auditService: AuditEvents = mock[AuditEvents]
 
       override def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
     }
@@ -75,6 +76,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
       override val registartionService: RegistartionService = mock[RegistartionService]
+      override val auditService: AuditEvents = mock[AuditEvents]
 
       override def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
     }
@@ -103,6 +105,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
       override val registartionService: RegistartionService = mock[RegistartionService]
+      override val auditService: AuditEvents = mock[AuditEvents]
 
       override def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
     }
@@ -130,6 +133,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
       override val registartionService: RegistartionService = mock[RegistartionService]
+      override val auditService: AuditEvents = mock[AuditEvents]
     }
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(

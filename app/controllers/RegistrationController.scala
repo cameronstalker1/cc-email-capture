@@ -19,7 +19,7 @@ package controllers
 import models.Registration
 import play.api.Logger
 import play.api.libs.json.JsObject
-import services.{RegistartionService, EmailService}
+import services.{AuditEvents, RegistartionService, EmailService}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -30,11 +30,13 @@ import scala.concurrent.Future
 object RegistrationController extends RegistrationController {
   override val emailService: EmailService = EmailService
   override val registartionService: RegistartionService = RegistartionService
+  override val auditService: AuditEvents = AuditEvents
 }
 
 trait RegistrationController extends BaseController with ServicesConfig {
   val emailService: EmailService
   val registartionService: RegistartionService
+  val auditService: AuditEvents
 
   def register = Action.async(parse.json[JsObject]) {
     implicit request =>
@@ -80,6 +82,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
     emailService.sendRegistrationEmail(registration, host).map { result =>
       result.status match {
         case ACCEPTED =>
+          auditService.sendEmailSuccessEventForInterest(registration.toString)
           Ok
         case BAD_GATEWAY =>
           Logger.warn("******** SubscribeController.sendEmail: Bad Gateway Error ******")

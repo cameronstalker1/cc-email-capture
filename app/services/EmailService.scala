@@ -66,19 +66,20 @@ trait EmailService extends ServicesConfig {
 
   def sendEmail(userData: Message, host : String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
-    send("childcare_registration_email", userData.emailAddress, host)
+    send("childcare_registration_email", userData.emailAddress, host, "cc-frontend")
   }
 
   def sendRegistrationEmail(registrationData: Registration, host: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
-    send("childcare_schemes_interest_email", registrationData.emailAddress, host)
+    send("childcare_schemes_interest_email", registrationData.emailAddress, host, "childcare-interest")
   }
 
-  def send(templateId: String, email: String, host: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
     val toList: List[EmailAddress] = List(EmailAddress(email))
     val params: Map[String, String] = Map("emailAddress" -> email)
-    val eventUrl = Some("http://" + host + controllers.routes.EmailCaptureController.receiveEvent(email).url)
+    val eventUrl = Some("http://" + host + controllers.routes.EmailCaptureController.receiveEvent(email, source).url)
+
     val emailData: SendEmailRequest = SendEmailRequest(
       to = toList,
       templateId = templateId,

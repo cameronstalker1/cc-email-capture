@@ -124,7 +124,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
     }
   }
 
-  def receiveEvent(emailAddress: String) = Action.async {
+  def receiveEvent(emailAddress: String, source: String) = Action.async {
     implicit request =>
       def response(requestJson: JsValue) = {
 
@@ -135,7 +135,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
                 configuration.getString(event.eventType.toLowerCase) match {
                   case Some(_) =>
                     Logger.info("Email Callback Event Received: " + event.eventType)
-                    auditService.sendEmailStatusEvent(emailAddress + ":::" +event.eventType)
+                    auditService.emailStatusEventForType(emailAddress + ":::" +event.eventType, source)
                   case None =>
                     Logger.warn("No need to audit the Event Received: " + event.eventType)
                 }

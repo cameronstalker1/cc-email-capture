@@ -32,11 +32,24 @@ trait AuditEvents {
   def sendDataStoreSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     sendEvent(AuditTypes.Tx_SUCCESSFUL, Map(("user-data" -> userData.toString())))
 
+  def emailStatusEventForType(emailStatus: String, source: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    source match {
+      case "childcare-interest" => sendEmailStatusEventForInterest(emailStatus)
+      case "cc-frontend" => sendEmailStatusEvent(emailStatus)
+    }
+  }
+
   def sendEmailStatusEvent(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     sendEvent("email-sent-status", Map(("email-sent-status" -> emailStatus)))
 
+  def sendEmailStatusEventForInterest(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+    sendEvent("email-sent-status-for-interest", Map(("email-sent-status-for-interest" -> emailStatus)))
+
   def sendEmailSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     sendEvent("email-send-success", Map(("email-send-success" -> userData.toString())))
+
+  def sendEmailSuccessEventForInterest(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+    sendEvent("email-send-success-for-interest", Map(("email-send-success-for-interest" -> userData)))
 
   def sendServiceFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     sendEvent(AuditTypes.Tx_FAILED, Map(("user-data" -> userData.toString()), ("error" -> error.toString())))

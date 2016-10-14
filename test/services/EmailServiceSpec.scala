@@ -57,7 +57,7 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
             mockResult
           )
 
-          val result = await(emailService.send("templateID", registration.emailAddress, "host"))
+          val result = await(emailService.send("templateID", registration.emailAddress, "host", "childcare-interest"))
           result.status shouldBe expectedStatus
         }
     }
@@ -72,7 +72,7 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
 
       override val serviceUrl: String = "service-url"
 
-      override def send(templateId: String, email: String, host: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.successful(HttpResponse(OK))
+      override def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.successful(HttpResponse(OK))
     }
 
     "return the result of send" in{
