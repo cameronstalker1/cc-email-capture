@@ -58,7 +58,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
           }
         }.recover {
           case e: Exception => {
-            Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while checking email: ${e.getMessage} ========= \n")
+            Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while checking email:${e.getMessage} ========= \n")
             auditService.sendServiceFailureEvent(data, e)
             InternalServerError
           }

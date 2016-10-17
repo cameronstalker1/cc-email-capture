@@ -56,10 +56,12 @@ trait EmailService extends ServicesConfig {
       }
     } recover {
       case e : BadGatewayException =>
-        Logger.warn(s"\n ========= EmailService.checkEmail: BadGatewayException while accessing mailgun microservice (check email): ${e.getMessage} ========= \n")
+        Logger.warn(s"\n ========= EmailService.checkEmail: BadGatewayException while accessing" +
+          s" mailgun microservice (check email): ${e.getMessage} ========= \n")
         HttpResponse.apply(BAD_GATEWAY)
       case e : Exception =>
-        Logger.warn(s"\n ========= EmailService.checkEmail: Exception while accessing mailgun microservice (check email): ${e.getMessage} ========= \n")
+        Logger.warn(s"\n ========= EmailService.checkEmail: Exception while accessing mailgun microservice " +
+          s"(check email): ${e.getMessage} ========= \n")
         HttpResponse.apply(INTERNAL_SERVER_ERROR)
     }
   }
@@ -69,12 +71,14 @@ trait EmailService extends ServicesConfig {
     send("childcare_registration_email", userData.emailAddress, host, "cc-frontend")
   }
 
-  def sendRegistrationEmail(registrationData: Registration, host: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def sendRegistrationEmail(registrationData: Registration, host: String)(implicit hc: HeaderCarrier):
+  Future[HttpResponse] = {
 
     send("childcare_schemes_interest_email", registrationData.emailAddress, host, "childcare-interest")
   }
 
-  def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier):
+  Future[HttpResponse] = {
 
     val toList: List[EmailAddress] = List(EmailAddress(email))
     val params: Map[String, String] = Map("emailAddress" -> email)
@@ -94,10 +98,12 @@ trait EmailService extends ServicesConfig {
         result
     } recover {
       case e : BadGatewayException =>
-        Logger.error(s"\n ========= EmailService.sendEmail: BadGatewayException while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
+        Logger.error(s"\n ========= EmailService.sendEmail: BadGatewayException while accessing mailgun microservice " +
+          s"(send email): ${e.getMessage} ========= \n")
         HttpResponse.apply(BAD_GATEWAY)
       case e : Exception =>
-        Logger.error(s"\n ========= EmailService.sendEmail: Exception while accessing mailgun microservice (send email): ${e.getMessage} ========= \n")
+        Logger.error(s"\n ========= EmailService.sendEmail: Exception while accessing mailgun microservice" +
+          s" (send email): ${e.getMessage} ========= \n")
         HttpResponse.apply(INTERNAL_SERVER_ERROR)
     }
   }
