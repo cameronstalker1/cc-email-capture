@@ -38,7 +38,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   val registartionService: RegistartionService
   val auditService: AuditEvents
 
-  def register = Action.async(parse.json[JsObject]) {
+  def register : Action[JsObject] = Action.async(parse.json[JsObject]) {
     implicit request =>
       request.body.asOpt[Registration] match {
         case Some(registration) => processRegistration(registration, request.host)

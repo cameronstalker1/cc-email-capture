@@ -19,11 +19,13 @@ package services
 import play.Play
 import models.Message
 import play.api.Logger
+import play.api.libs.json.JsObject
 import reactivemongo.api.FailoverStrategy
 import uk.gov.hmrc.mongo.SimpleMongoConnection
 import repositories.MessageRepository
 import uk.gov.hmrc.play.config.RunMode
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object MessageService extends MessageService with RunMode {
   override val mongoConnectionUri: String = Play.application().configuration().getString(s"$env.mongodb.uri")
@@ -34,7 +36,7 @@ trait MessageService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None // use the default by supplying None (see ReactiveMongoHelper)
   val messageRepository: MessageRepository
 
-  def storeMessage(message: Message) = {
+  def storeMessage(message: Message) : Future[Message] = {
       Logger.info(s"\n ********** MessageService.storeMessage::: message->$message ********** \n")
       messageRepository.storeMessage(message)
     }

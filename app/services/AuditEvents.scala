@@ -29,38 +29,38 @@ trait AuditEvents {
 
   val customAuditConnector: AuditService
 
-  def sendDataStoreSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendDataStoreSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent(AuditTypes.Tx_SUCCESSFUL, Map(("user-data" -> userData.toString())))
 
-  def emailStatusEventForType(emailStatus: String, source: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def emailStatusEventForType(emailStatus: String, source: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit= {
     source match {
       case "childcare-interest" => sendEmailStatusEventForInterest(emailStatus)
       case "cc-frontend" => sendEmailStatusEvent(emailStatus)
     }
   }
 
-  def sendEmailStatusEvent(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEmailStatusEvent(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-sent-status", Map(("email-sent-status" -> emailStatus)))
 
-  def sendEmailStatusEventForInterest(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEmailStatusEventForInterest(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-sent-status-for-interest", Map(("email-sent-status-for-interest" -> emailStatus)))
 
-  def sendEmailSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEmailSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-send-success", Map(("email-send-success" -> userData.toString())))
 
-  def sendEmailSuccessEventForInterest(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEmailSuccessEventForInterest(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-send-success-for-interest", Map(("email-send-success-for-interest" -> userData)))
 
-  def sendServiceFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendServiceFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent(AuditTypes.Tx_FAILED, Map(("user-data" -> userData.toString()), ("error" -> error.toString())))
 
-  def sendDataStoreFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendDataStoreFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent(AuditTypes.Tx_FAILED, Map(("user-data" -> userData.toString()), ("error" -> error.toString())))
 
-  def sendEmailFailureEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEmailFailureEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext)  : Unit =
     sendEvent(AuditTypes.Tx_FAILED, Map(("user-data" -> userData.toString())))
 
-  def emptyJSONEvent(error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def emptyJSONEvent(error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit  =
     sendEvent(AuditTypes.Tx_FAILED, Map(("error" -> error.toString())))
 
   private def sendEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext) =

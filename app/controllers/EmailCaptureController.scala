@@ -44,7 +44,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
   val auditService: AuditEvents
   val emailService: EmailService
 
-  def captureEmail = Action.async(parse.json) { implicit request =>
+  def captureEmail : Action[JsValue]  = Action.async(parse.json) { implicit request =>
     Logger.info(s"***************EmailCaptureController.captureEmail*************")
     val registrationData = request.body.asOpt[Message]
     registrationData match {
@@ -58,7 +58,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
           }
         }.recover {
           case e: Exception => {
-            Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while checking email: ${e.getMessage} ========= \n")
+            Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while checking email:${e.getMessage} ========= \n")
             auditService.sendServiceFailureEvent(data, e)
             InternalServerError
           }
@@ -124,7 +124,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
     }
   }
 
-  def receiveEvent(emailAddress: String, source: String) = Action.async {
+  def receiveEvent(emailAddress: String, source: String) : Action[AnyContent] = Action.async {
     implicit request =>
       def response(requestJson: JsValue) = {
 
@@ -135,7 +135,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
                 configuration.getString(event.eventType.toLowerCase) match {
                   case Some(_) =>
                     Logger.info("Email Callback Event Received: " + event.eventType)
-                    auditService.emailStatusEventForType(emailAddress + ":::" +event.eventType, source)
+                    auditService.emailStatusEventForType(emailAddress + ":::" + event.eventType, source)
                   case None =>
                     Logger.warn("No need to audit the Event Received: " + event.eventType)
                 }
@@ -143,7 +143,8 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
             Future.successful(Ok)
           case Failure(e) =>
             Logger.warn("Internal Server Error")
-            Future.successful(InternalServerError(JsonConstructor.constructErrorResponse(EmailResponse(500, Some(e.getMessage)))))
+            Future.successful(InternalServerError(JsonConstructor.constructErrorResponse(EmailResponse
+              (INTERNAL_SERVER_ERROR, Some(e.getMessage)))))
         }
       }
       getResponseJson(request, response)

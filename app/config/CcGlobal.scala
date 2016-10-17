@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
+import uk.gov.hmrc.play.config._
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
@@ -53,23 +53,27 @@ object AuthParamsControllerConfiguration extends AuthParamsControllerConfig {
 
 object MicroserviceAuditFilter extends AuditFilter with AppName {
   override val auditConnector = MicroserviceAuditConnector
-  override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+  override def controllerNeedsAuditing(controllerName: String) : Boolean =
+    ControllerConfiguration.paramsForController(controllerName).needsAuditing
 }
 
 object MicroserviceLoggingFilter extends LoggingFilter {
-  override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
+  override def controllerNeedsLogging(controllerName: String) : Boolean =
+    ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
 object MicroserviceAuthFilter extends AuthorisationFilter {
   override lazy val authParamsConfig = AuthParamsControllerConfiguration
   override lazy val authConnector = MicroserviceAuthConnector
-  override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
+  override def controllerNeedsAuth(controllerName: String): Boolean =
+    ControllerConfiguration.paramsForController(controllerName).needsAuth
 }
 
 object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
   override val auditConnector = MicroserviceAuditConnector
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] =
+    app.configuration.getConfig("microservice.metrics")
 
   override val loggingFilter = MicroserviceLoggingFilter
 
