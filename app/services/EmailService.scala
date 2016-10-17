@@ -32,14 +32,14 @@ import scala.concurrent.Future
 */
 
 object EmailService extends EmailService {
-  override def httpGetRequest = WSHttp
-  override def httpPostRequest = WSHttp
+  override val httpGetRequest = WSHttp
+  override val httpPostRequest = WSHttp
   override val serviceUrl = baseUrl("email")
 }
 
 trait EmailService extends ServicesConfig {
-  def httpGetRequest: HttpGet
-  def httpPostRequest: HttpPost
+  val httpGetRequest: HttpGet
+  val httpPostRequest: HttpPost
   val serviceUrl: String
   import MdcLoggingExecutionContext._
 

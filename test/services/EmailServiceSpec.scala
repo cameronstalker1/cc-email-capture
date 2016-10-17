@@ -36,9 +36,9 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
     val mockPOST = mock[HttpPost]
     val emailService = new EmailService {
 
-      override def httpGetRequest: HttpGet = mock[HttpGet]
+      override val httpGetRequest: HttpGet = mock[HttpGet]
 
-      override def httpPostRequest: HttpPost = mockPOST
+      override val httpPostRequest: HttpPost = mockPOST
 
       override val serviceUrl: String = "service-url"
     }
@@ -66,9 +66,9 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
   "Calling send registration" should{
     val emailService = new EmailService {
 
-      override def httpGetRequest: HttpGet = mock[HttpGet]
+      override val httpGetRequest: HttpGet = mock[HttpGet]
 
-      override def httpPostRequest: HttpPost = mock[HttpPost]
+      override val httpPostRequest: HttpPost = mock[HttpPost]
 
       override val serviceUrl: String = "service-url"
 
