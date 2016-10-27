@@ -49,12 +49,6 @@ class RegistartionRepository()(implicit mongo: () => DB)
   }
 
   def getEmailCount(): Future[Int] = {
-//    val selectionCriteria : Option[RegistartionRepository.this.collection.pack.Document] = if(country.isDefined)
-//      Some(Json.obj("location" -> country.get))
-//    else
-//      None
-//    collection.count(selector = selectionCriteria).map{ result => result}
-
     collection.count().map{ result => result}
   }
 
