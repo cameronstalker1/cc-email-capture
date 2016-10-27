@@ -35,6 +35,24 @@ trait RegistartionService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None
   val registartionRepository: RegistartionRepository
 
+  def getEmailCount(): Future[Option[Int]] = {
+    registartionRepository.getEmailCount().map(res => Some(res)).recover {
+      case ex => {
+        Logger.error(s"\n ========= RegistartionService: EmailCount failed with exception ${ex.getMessage} ========= \n")
+        None
+      }
+    }
+  }
+
+  def getLocationCount(): Future[Option[Map[String, Int]]] = {
+    registartionRepository.getLocationCount().map(res => Some(res)).recover {
+      case ex => {
+        Logger.error(s"\n ========= RegistartionService: LocationCount failed with exception ${ex.getMessage} ========= \n")
+        None
+      }
+    }
+  }
+
   def insertOrUpdate(registration: Registration): Future[Boolean] = {
     registartionRepository.inserOrUpdate(registration).map(res => res).recover {
       case ex => {

@@ -48,8 +48,11 @@ trait AuditEvents {
   def sendEmailSuccessEvent(userData: Message)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-send-success", Map(("email-send-success" -> userData.toString())))
 
-  def sendEmailSuccessEventForInterest(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
+  def sendEmailCount(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-send-success-for-interest", Map(("email-send-success-for-interest" -> userData)))
+
+  def sendEmailSuccessEventForInterest(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
+    sendEvent("childcare-schemes-interest-email-count", Map(("email-count" -> userData)))
 
   def sendServiceFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent(AuditTypes.Tx_FAILED, Map(("user-data" -> userData.toString()), ("error" -> error.toString())))

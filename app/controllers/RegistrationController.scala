@@ -71,7 +71,17 @@ trait RegistrationController extends BaseController with ServicesConfig {
 
   def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
     registartionService.insertOrUpdate(registration).flatMap {
-      case true => sendEmail(registration, host)
+      case true => {
+        registartionService.getEmailCount().onSuccess {
+          case Some(x) =>
+          case Some(x) => println("******************* email count : "+x)
+            auditService.sendEmailCount(x.toString)
+        }
+        registartionService.getLocationCount().onSuccess {
+          case Some(x) => println("******************* locations : "+x)
+        }
+        sendEmail(registration, host)
+      }
       case false => {
         Logger.warn(s"******** SubscribeController.saveAndSendEmail: Inser/Update failed ******")
         Future(InternalServerError)
