@@ -94,7 +94,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
         ).thenReturn(
           mockResponse
         )
-
         val result = await(registrationController.processRegistration(registration, "host"))
         status(result) shouldBe functionStatus
       }
@@ -121,6 +120,18 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
           registrationController.registartionService.insertOrUpdate(any[Registration])
         ).thenReturn(
           mockResponse
+        )
+
+        when(
+          registrationController.registartionService.getEmailCount()
+        ).thenReturn(
+          Future.successful(Some(1))
+        )
+
+        when(
+          registrationController.registartionService.getLocationCount()
+        ).thenReturn(
+          Future.successful(Some(Map("test"->2)))
         )
 
         val result = await(registrationController.saveAndSendEmail(registration, "host"))

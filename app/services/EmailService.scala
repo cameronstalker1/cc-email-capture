@@ -71,8 +71,6 @@ trait EmailService extends ServicesConfig {
     send("childcare_registration_email", userData.emailAddress, host, "cc-frontend")
   }
 
-  def sendEmailCount
-
   def sendRegistrationEmail(registrationData: Registration, host: String)(implicit hc: HeaderCarrier):
   Future[HttpResponse] = {
 
