@@ -40,6 +40,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
 
   def register : Action[JsObject] = Action.async(parse.json[JsObject]) {
     implicit request =>
+
       request.body.asOpt[Registration] match {
         case Some(registration) => processRegistration(registration, request.host)
         case _ => {
@@ -71,7 +72,19 @@ trait RegistrationController extends BaseController with ServicesConfig {
 
   def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
     registartionService.insertOrUpdate(registration).flatMap {
-      case true => sendEmail(registration, host)
+      case true => {
+
+        registartionService.getEmailCount().onSuccess {
+          case Some(x) => auditService.sendEmailCount(x.toString)
+        }
+        registartionService.getLocationCount().onSuccess {
+          case Some(x) =>
+            val locationMap = x.map(x => (x._1, x._2.toString))
+            auditService.sendLocationCount(locationMap)
+        }
+
+        sendEmail(registration, host)
+      }
       case false => {
         Logger.warn(s"******** SubscribeController.saveAndSendEmail: Inser/Update failed ******")
         Future(InternalServerError)

@@ -16,14 +16,21 @@
 
 package repositories
 
+import config.ApplicationConfig._
 import models.Registration
-import reactivemongo.api.DB
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import reactivemongo.api.{DB, ReadPreference}
+import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
+import reactivemongo.core.commands.{Aggregate, GroupField, SumValue}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import config.ApplicationConfig._
-import scala.concurrent.Future
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+
+
 
 class RegistartionRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Registration, BSONObjectID](registrationCollection, mongo, Registration.registrationFormat,
@@ -38,6 +45,31 @@ class RegistartionRepository()(implicit mongo: () => DB)
     ).map { result =>
       result.ok
     }
+
+  }
+
+  def getEmailCount(): Future[Int] = {
+    collection.count().map{ result => result}
+  }
+
+  def getLocationCount() : Future[Map[String, Int]]  = {
+
+    val countries : List[String] = List("england", "wales", "northern-ireland", "scotland")
+
+    val statusZeroCounts = countries.map(_ -> 0).toMap
+
+    val processingLocationMap: Reads[(String, Int)] = (
+      (JsPath \ "_id").read[String] and
+        (JsPath \ "count").read[Int]
+      ).tupled
+
+    collection.db.command(
+      Aggregate(
+        collection.name,
+        Seq(GroupField("location")("count" -> SumValue(1)))
+      ),
+      ReadPreference.secondaryPreferred
+    ).map(locationMap => statusZeroCounts ++ locationMap.toSeq.map(Json.toJson(_).as(processingLocationMap)))
 
   }
 
