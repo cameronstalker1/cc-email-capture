@@ -40,7 +40,6 @@ trait RegistrationController extends BaseController with ServicesConfig {
 
   def register : Action[JsObject] = Action.async(parse.json[JsObject]) {
     implicit request =>
-
       request.body.asOpt[Registration] match {
         case Some(registration) => processRegistration(registration, request.host)
         case _ => {
@@ -99,13 +98,14 @@ trait RegistrationController extends BaseController with ServicesConfig {
     }
   }
 
-  private def auditEmailLocationCount() (implicit hc: HeaderCarrier) = {
+  private def auditEmailLocationCount() (implicit hc: HeaderCarrier): Unit = {
     registartionService.getLocationCount().onSuccess {
-      case Some(x) =>
-        val locationMap = x.map(x => (x._1, x._2.toString))
+      case locationCountMap if !locationCountMap.isEmpty =>
         registartionService.getEmailCount().onSuccess {
-          case Some(x) =>
-            auditService.sendEmailLocationCount(locationMap ++ Map("email-count"->x.toString))
+          case totalCount if totalCount >= 0 =>
+            auditService.sendEmailLocationCount(
+              locationCountMap.map(x => (x._1, x._2.toString)) ++ Map("email-count" -> totalCount.toString)
+            )
         }
     }
 

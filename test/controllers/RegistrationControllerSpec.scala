@@ -125,13 +125,13 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
         when(
           registrationController.registartionService.getEmailCount()
         ).thenReturn(
-          Future.successful(Some(1))
+          Future.successful(1)
         )
 
         when(
           registrationController.registartionService.getLocationCount()
         ).thenReturn(
-          Future.successful(Some(Map("test"->2)))
+          Future.successful(Map("test"->2))
         )
 
         val result = await(registrationController.saveAndSendEmail(registration, "host"))
