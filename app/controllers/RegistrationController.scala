@@ -53,7 +53,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   }
 
   def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
-//    saveAndSendEmail(registration, host)
+
     emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
       validationResult.status match {
         case OK => saveAndSendEmail(registration, host)
@@ -73,16 +73,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
     registartionService.insertOrUpdate(registration).flatMap {
       case true => {
-
-        registartionService.getLocationCount().onSuccess {
-          case Some(x) =>
-            val locationMap = x.map(x => (x._1, x._2.toString))
-            registartionService.getEmailCount().onSuccess {
-              case Some(x) =>
-                auditService.sendEmailLocationCount(locationMap ++ Map("email-count"->x.toString))
-            }
-        }
-
+        auditEmailLocationCount()
         sendEmail(registration, host)
       }
       case false => {
@@ -106,6 +97,18 @@ trait RegistrationController extends BaseController with ServicesConfig {
           InternalServerError
       }
     }
+  }
+
+  private def auditEmailLocationCount() (implicit hc: HeaderCarrier) = {
+    registartionService.getLocationCount().onSuccess {
+      case Some(x) =>
+        val locationMap = x.map(x => (x._1, x._2.toString))
+        registartionService.getEmailCount().onSuccess {
+          case Some(x) =>
+            auditService.sendEmailLocationCount(locationMap ++ Map("email-count"->x.toString))
+        }
+    }
+
   }
 
 }
