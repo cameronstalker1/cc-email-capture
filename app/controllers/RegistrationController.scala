@@ -74,13 +74,13 @@ trait RegistrationController extends BaseController with ServicesConfig {
     registartionService.insertOrUpdate(registration).flatMap {
       case true => {
 
-        registartionService.getEmailCount().onSuccess {
-          case Some(x) => auditService.sendEmailCount(x.toString)
-        }
         registartionService.getLocationCount().onSuccess {
           case Some(x) =>
             val locationMap = x.map(x => (x._1, x._2.toString))
-            auditService.sendLocationCount(locationMap)
+            registartionService.getEmailCount().onSuccess {
+              case Some(x) =>
+                auditService.sendEmailLocationCount(locationMap ++ Map("email-count"->x.toString))
+            }
         }
 
         sendEmail(registration, host)
