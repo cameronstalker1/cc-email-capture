@@ -38,9 +38,16 @@ class RegistartionRepository()(implicit mongo: () => DB)
 
   def inserOrUpdate(registration: Registration): Future[Boolean] = {
 
+    val registrationWithCorrectDOB: Registration = if(registration.dob.isDefined && registration.dob.get.isEmpty) {
+      registration.copy(dob = None)
+    }
+    else {
+      registration
+    }
+
     collection.update(
       selector = BSONDocument("emailAddress" -> registration.emailAddress),
-      update = registration,
+      update = registrationWithCorrectDOB,
       upsert = true
     ).map { result =>
       result.ok
