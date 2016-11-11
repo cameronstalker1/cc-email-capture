@@ -109,12 +109,13 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       override def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
     }
 
-    val testCases: List[(String, Future[Boolean], Int)] = List(
-      ("return the result of sendEmail if saving data is successful", Future.successful(true), ACCEPTED),
-      ("return the result of INTERNAL_SERVER_ERROR if saving data failed", Future.successful(false), INTERNAL_SERVER_ERROR)
+    val testCases: List[(String, Future[Boolean], Registration, Int)] = List(
+      ("return the result of sendEmail if saving data is successful", Future.successful(true), registration, ACCEPTED),
+      ("return the result of sendEmail if saving data is successful and audit correctly", Future.successful(true), registrationWithoutDOB, ACCEPTED),
+      ("return the result of INTERNAL_SERVER_ERROR if saving data failed", Future.successful(false), registration, INTERNAL_SERVER_ERROR)
     )
 
-    testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
+    testCases.foreach { case (testMessage, mockResponse, registrationData, functionStatus) =>
       testMessage in {
         when(
           registrationController.registartionService.insertOrUpdate(any[Registration])
@@ -134,7 +135,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
           Future.successful(Map("test"->2))
         )
 
-        val result = await(registrationController.saveAndSendEmail(registration, "host"))
+        val result = await(registrationController.saveAndSendEmail(registrationData, "host"))
         status(result) shouldBe functionStatus
       }
     }
