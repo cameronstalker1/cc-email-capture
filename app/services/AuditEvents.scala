@@ -54,6 +54,9 @@ trait AuditEvents {
   def sendEmailSuccessEventForInterest(userData: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-send-success-for-interest", Map(("email-send-success-for-interest" -> userData)))
 
+  def sendDOB(userData: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
+    sendEvent("dob", userData)
+
   def sendServiceFailureEvent(userData: Message, error: Throwable)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent(AuditTypes.Tx_FAILED, Map(("user-data" -> userData.toString()), ("error" -> error.toString())))
 

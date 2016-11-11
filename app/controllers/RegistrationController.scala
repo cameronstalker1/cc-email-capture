@@ -72,6 +72,9 @@ trait RegistrationController extends BaseController with ServicesConfig {
   def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
     registartionService.insertOrUpdate(registration).flatMap {
       case true => {
+        registration.dob.getOrElse(List()).map { dob =>
+          auditService.sendDOB(Map("dob" -> dob.toString))
+        }
         auditEmailLocationCount()
         sendEmail(registration, host)
       }
