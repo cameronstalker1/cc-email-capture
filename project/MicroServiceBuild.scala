@@ -23,7 +23,7 @@ object MicroServiceBuild extends Build with MicroService {
 }
 
 private object AppDependencies {
-  import play.PlayImport._
+  import play.sbt.PlayImport._
   import play.core.PlayVersion
 
   private val microServiceBootstrapVersion = "4.4.0"
