@@ -31,6 +31,8 @@ import scala.concurrent.Future
 
 class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
 
+  override def bindModules = Seq(new PlayModule)
+
   val fakeRequest: FakeRequest[_] = FakeRequest()
   implicit val hc: HeaderCarrier = new HeaderCarrier()
 
