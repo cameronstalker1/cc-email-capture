@@ -16,7 +16,7 @@
 
 package repositories
 
-import play.modules.reactivemongo.ReactiveMongoPlugin
+//import play.modules.reactivemongo.ReactiveMongoPlugin
 
 object Repositories {
 

@@ -52,7 +52,6 @@ trait MicroService {
       routesGenerator := StaticRoutesGenerator,
       resolvers := Seq(
         Resolver.bintrayRepo("hmrc", "releases"),
-        Resolver.typesafeRepo("releases"),
         Resolver.jcenterRepo
       ),
       scalaVersion := "2.11.7",

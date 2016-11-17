@@ -20,7 +20,7 @@ import _root_.utils.JsonConstructor
 import models.{CallBackEventList, EmailResponse, Message}
 import play.api.Logger
 import play.api.Play._
-import play.api.i18n.Messages
+import play.api.i18n.Messages._
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import reactivemongo.core.errors.ReactiveMongoException

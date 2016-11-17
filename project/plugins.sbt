@@ -3,7 +3,7 @@ resolvers += Resolver.url("hmrc-sbt-plugin-releases",
 
 resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
 
-resolvers += "scoverage-bintray" at "https://dl.bintray.com/sksamuel/sbt-plugins/"
+resolvers += Resolver.url("scoverage-bintray", url("https://dl.bintray.com/sksamuel/sbt-plugins/"))(Resolver.ivyStylePatterns)
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.4.0")
 
