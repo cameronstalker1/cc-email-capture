@@ -18,12 +18,9 @@ package utils
 
 import models.EmailResponse
 import org.scalatest.mock.MockitoSugar
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 
-/**
- * Created by user on 17/06/16.
- */
-class JsonConstructorSpec extends UnitSpec with MockitoSugar {
+class JsonConstructorSpec extends UnitSpec with MockitoSugar with WithFakeApplication {
 
   "construct error response when response has some error" in {
     val response = EmailResponse(500, Some("error occured"))
@@ -34,7 +31,7 @@ class JsonConstructorSpec extends UnitSpec with MockitoSugar {
   "construct error response when response has no error" in {
     val response = EmailResponse(500, None)
     val error = JsonConstructor.constructErrorResponse(response)
-    error.toString shouldBe  "{\"reason\":\"unknown.failure\"}"
+    error.toString shouldBe  "{\"reason\":\"Unknown reason. Dependent system did not provide failure reason\"}"
   }
 
   "construct error using a string" in {

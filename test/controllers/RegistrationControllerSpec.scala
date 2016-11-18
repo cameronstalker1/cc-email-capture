@@ -16,6 +16,10 @@
 
 package controllers
 
+import javax.inject.Inject
+
+import akka.stream.Materializer
+import com.kenshoo.play.metrics.PlayModule
 import fixtures.RegistrationData
 import models.Registration
 import org.scalatest.mock.MockitoSugar
@@ -29,7 +33,7 @@ import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import play.api.test.Helpers._
 import scala.concurrent.Future
 
-class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
+class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
 
   override def bindModules = Seq(new PlayModule)
 

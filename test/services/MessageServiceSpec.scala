@@ -17,12 +17,13 @@
 package services
 
 import models.Message
-import org.specs2.mock.Mockito
+import org.scalatest.mock.MockitoSugar
 import repositories.MessageRepository
+import org.mockito.Mockito._
 import uk.gov.hmrc.play.test.UnitSpec
 import scala.concurrent._
 
-class MessageServiceSpec extends UnitSpec with Mockito {
+class MessageServiceSpec extends UnitSpec  with MockitoSugar {
 
   "Message Service" should {
     "store a message containing email if the email doesn't exist in the database" in {
@@ -33,7 +34,11 @@ class MessageServiceSpec extends UnitSpec with Mockito {
         override val messageRepository = mockMessageRepository
       }
 
-      mockMessageRepository.storeMessage(Message("test1@example.com", None, true)) returns Future.successful(Message("test1@example.com", england = true))
+      when(
+        mockMessageRepository.storeMessage(Message("test1@example.com", None, true))
+      ).thenReturn(
+        Future.successful(Message("test1@example.com", england = true))
+      )
 
       await(individualService.storeMessage(Message("test1@example.com", None, true)))
     }
@@ -46,7 +51,11 @@ class MessageServiceSpec extends UnitSpec with Mockito {
         override val messageRepository = mockMessageRepository
       }
 
-      mockMessageRepository.storeMessage(Message("test1@example.com", england = false)) returns Future.successful(Message("test1@example.com", england = false))
+      when(
+        mockMessageRepository.storeMessage(Message("test1@example.com", england = false))
+      ).thenReturn(
+        Future.successful(Message("test1@example.com", england = false))
+      )
 
       await(individualService.storeMessage(Message("test1@example.com", england = false)))
     }

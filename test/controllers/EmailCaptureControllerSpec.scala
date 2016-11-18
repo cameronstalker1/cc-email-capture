@@ -16,6 +16,7 @@
 
 package test.controllers
 
+import akka.stream.Materializer
 import controllers.{FakeCCEmailApplication, EmailCaptureController}
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
@@ -29,13 +30,13 @@ import reactivemongo.core.errors.ReactiveMongoException
 import services.{EmailService, AuditEvents, MessageService}
 import uk.gov.hmrc.play.http.{InternalServerException, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
-import test.JsonRequestHelper.executeAction
 import org.mockito.Matchers.{eq => mockEq, _}
 import scala.concurrent._
 import models.Message
 import scala.concurrent.ExecutionContext.Implicits.global
+import javax.inject._
 
-class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication with ScalaFutures {
+class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) extends UnitSpec with MockitoSugar with FakeCCEmailApplication with ScalaFutures {
 
   private trait Setup  {
     val mockMessageService = mock[MessageService]
@@ -70,35 +71,35 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 400 status when supplied with invalid json" in new Setup {
-       val fakeBody = Json.obj(
-         "invalidJson" -> "Invalid Json"
-       )
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
-        status(result) shouldBe 400
-      }
+      val fakeBody = Json.obj(
+        "invalidJson" -> "Invalid Json"
+      )
+      val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
+      status(result) shouldBe 400
+    }
 
-      "return 404 status when supplied with a value in the email field and the email is invalid" in new Setup {
-        val email = "test@gmail.com"
-        val dateOfBirth1 = LocalDate.parse("2009-05-04", formatter)
-        val dateOfBirth2 = LocalDate.parse("2009-09-06", formatter)
-        val dobs =  List(dateOfBirth1, dateOfBirth2)
-        val fakeBody = Json.obj(
-          "emailAddress" -> email,
-          "dateOfBirth" -> dobs,
-          "england" -> true
-        )
-        when(mockController.emailService.validEmail(mockEq(email))(hc = any())).thenReturn(Future.successful(fakeResponseNotFound))
-        when(mockController.messageService.storeMessage(Message(email, Some(dobs), england = true))).thenReturn(Future.successful(Message(email, england = true)))
-        when(mockController.emailService.sendEmail(userData = mockEq(Message(email,Some(dobs), england = true)), any())(hc = any())).thenReturn(Future.successful(fakeResponseAccepted))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
-        status(result) shouldBe 404
-      }
+    "return 404 status when supplied with a value in the email field and the email is invalid" in new Setup {
+      val email = "test@gmail.com"
+      val dateOfBirth1 = LocalDate.parse("2009-05-04", formatter)
+      val dateOfBirth2 = LocalDate.parse("2009-09-06", formatter)
+      val dobs =  List(dateOfBirth1, dateOfBirth2)
+      val fakeBody = Json.obj(
+        "emailAddress" -> email,
+        "dateOfBirth" -> dobs,
+        "england" -> true
+      )
+      when(mockController.emailService.validEmail(mockEq(email))(hc = any())).thenReturn(Future.successful(fakeResponseNotFound))
+      when(mockController.messageService.storeMessage(Message(email, Some(dobs), england = true))).thenReturn(Future.successful(Message(email, england = true)))
+      when(mockController.emailService.sendEmail(userData = mockEq(Message(email,Some(dobs), england = true)), any())(hc = any())).thenReturn(Future.successful(fakeResponseAccepted))
+      val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
+      status(result) shouldBe 404
+    }
 
-      "return 400 status when empty json data is passed" in new Setup {
-        val fakeBody = Json.obj()
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
-        status(result) shouldBe 400
-      }
+    "return 400 status when empty json data is passed" in new Setup {
+      val fakeBody = Json.obj()
+      val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
+      status(result) shouldBe 400
+    }
 
     "return 500 status when the email is valid but there is an RuntimeException with storing the message" in new Setup {
         val email = "test@gmail.com"
@@ -109,7 +110,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseOk))
         when(mockController.messageService.storeMessage(Message(email, england = false))).thenReturn(Future.failed(new Exception("There was an exception")))
         when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = false)), any())(hc = any())).thenReturn(Future.successful(fakeResponseAccepted))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
 
@@ -121,7 +122,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         )
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseOk))
         when(mockController.messageService.storeMessage(Message(email, england = false))).thenReturn(Future.failed(new IllegalStateException("There was an exception")))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
 
@@ -135,7 +136,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         when(mockController.messageService.storeMessage(Message(email, england = false))).thenReturn(Future.failed(new ReactiveMongoException {
           override val message: String = "There was an exception"
         }))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
 
@@ -147,7 +148,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
           "england" -> true
         )
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseNotFound))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 404
       }
 
@@ -158,7 +159,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         "england" -> true
       )
       when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseBadGateway))
-      val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+      val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
       status(result) shouldBe 502
     }
 
@@ -169,7 +170,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         "england" -> true
       )
       when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseInternalError))
-      val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+      val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
       status(result) shouldBe 500
     }
 
@@ -180,7 +181,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
           "england" -> false
         )
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.failed(new Exception("There was an exception")))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
 
@@ -191,7 +192,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
           "england" -> false
         )
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.failed(new IllegalStateException("There was an exception")))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
 
@@ -204,7 +205,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseOk))
         when(mockController.messageService.storeMessage(Message(email, england = true))).thenReturn(Future.successful(Message(email, england = true)))
         when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = true)), any())(hc = any())).thenReturn(Future.failed(new IllegalStateException("There was an exception")))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
 
@@ -217,7 +218,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseOk))
       when(mockController.messageService.storeMessage(Message(email, england = false))).thenReturn(Future.failed(new IllegalStateException))
       when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = false)), any())(hc = any())).thenReturn(Future.failed(new InternalServerException("There was an exception")))
-      val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+      val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
       status(result) shouldBe 500
     }
 
@@ -230,7 +231,7 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
         when(mockController.emailService.validEmail(mockEq(email))(any())).thenReturn(Future.successful(fakeResponseOk))
         when(mockController.messageService.storeMessage(Message(email, england = true))).thenReturn(Future.successful(Message(email,  england = true)))
         when(mockController.emailService.sendEmail(userData = mockEq(Message(email,  england = true)), any())(hc = any())).thenReturn(Future.failed(new IllegalStateException("There was an exception")))
-        val result = await(executeAction(mockController.captureEmail(), FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json"), fakeBody.toString()))
+        val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
         status(result) shouldBe 500
       }
     }
