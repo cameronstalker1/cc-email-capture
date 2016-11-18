@@ -50,6 +50,7 @@ trait EmailService extends ServicesConfig {
           case true =>
             HttpResponse.apply(OK)
           case false =>
+            Logger.warn(s"\n ========= EmailService.checkEmail: Email is not valid ========= \n")
             HttpResponse.apply(NOT_FOUND)
       }
     } recover {
