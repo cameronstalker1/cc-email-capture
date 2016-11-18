@@ -32,8 +32,6 @@ class MessageRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Message, BSONObjectID]("Email", mongo, Message.formats, ReactiveMongoFormats.objectIdFormats)   {
 
   def storeMessage(message: Message): Future[Message] = {
-    Logger.info(s"\n ********** MessageRepository.storeMessage::: Message $message ********** \n")
-
     withCurrentTime { implicit time =>
       val update = updateQuery(message, time)
       val createEmailStore = FindAndModify(
@@ -51,8 +49,6 @@ class MessageRepository()(implicit mongo: () => DB)
   }
 
   private def updateQuery(emailData: Message, time: DateTime): JsObject = {
-    Logger.info(s"\n ********** MessageRepository.updateQuery:::message $emailData ********** \n")
-
     emailData.dob.isDefined match {
       case true =>
         Json.obj("$setOnInsert" -> Json.obj("createdAt" -> time.toString),
