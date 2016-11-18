@@ -37,7 +37,6 @@ trait MessageService extends SimpleMongoConnection {
   val messageRepository: MessageRepository
 
   def storeMessage(message: Message) : Future[Message] = {
-      Logger.info(s"\n ********** MessageService.storeMessage::: message->$message ********** \n")
       messageRepository.storeMessage(message)
     }
 }
