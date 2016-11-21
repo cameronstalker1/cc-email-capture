@@ -16,11 +16,14 @@
 
 package utils
 
+import com.kenshoo.play.metrics.PlayModule
 import models.EmailResponse
 import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 
 class JsonConstructorSpec extends UnitSpec with MockitoSugar with WithFakeApplication {
+
+  override def bindModules = Seq(new PlayModule)
 
   "construct error response when response has some error" in {
     val response = EmailResponse(500, Some("error occured"))
