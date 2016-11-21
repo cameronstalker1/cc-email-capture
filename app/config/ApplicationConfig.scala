@@ -26,4 +26,8 @@ object ApplicationConfig extends ServicesConfig {
 
   lazy val registrationCollection = Try(loadConfig("settings.registrationCollection")).getOrElse("")
 
+  lazy val mongoConnectionUri = Try(loadConfig(s"$env.mongodb.uri")).getOrElse("")
+
+  def getEventType(eventType: String): Try[String] = Try(loadConfig(eventType.toLowerCase))
+
 }

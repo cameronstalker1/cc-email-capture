@@ -16,6 +16,7 @@
 
 package services
 
+import config.ApplicationConfig
 import models.Registration
 import play.Play
 import play.api.Logger
@@ -27,7 +28,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object RegistartionService extends RegistartionService with RunMode {
-  override val mongoConnectionUri: String = Play.application().configuration().getString(s"$env.mongodb.uri")
+  override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
   override val registartionRepository: RegistartionRepository = new RegistartionRepository
 }
 

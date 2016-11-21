@@ -19,6 +19,7 @@ package controllers
 import com.kenshoo.play.metrics.PlayModule
 import fixtures.RegistrationData
 import models.Registration
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
@@ -71,7 +72,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     }
 
     "return the result of processRegistration if valid payload is given" in {
-      implicit val materializer = Play.application.materializer
       val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
       status(result) shouldBe OK
     }
@@ -96,7 +96,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
-        implicit val materializer = Play.application.materializer
         when(
           registrationController.emailService.validEmail(anyString())(any())
         ).thenReturn(
@@ -125,7 +124,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     testCases.foreach { case (testMessage, mockResponse, registrationData, functionStatus) =>
       testMessage in {
-        implicit val materializer = Play.application.materializer
         when(
           registrationController.registartionService.insertOrUpdate(any[Registration])
         ).thenReturn(
@@ -165,7 +163,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
-        implicit val materializer = Play.application.materializer
         when(
           registrationController.emailService.sendRegistrationEmail(any[Registration], anyString)(any[HeaderCarrier])
         ).thenReturn(
