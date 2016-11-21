@@ -48,10 +48,9 @@ trait EmailService extends ServicesConfig {
       result =>
         result.valid match {
           case true =>
-            Logger.info(s"\n ========= EmailService.checkEmail: Email $email is valid ========= \n")
             HttpResponse.apply(OK)
           case false =>
-            Logger.warn(s"\n ========= EmailService.checkEmail: Email $email is not valid ========= \n")
+            Logger.warn(s"\n ========= EmailService.checkEmail: Email is not valid ========= \n")
             HttpResponse.apply(NOT_FOUND)
       }
     } recover {
@@ -94,7 +93,6 @@ trait EmailService extends ServicesConfig {
 
     httpPostRequest.POST[SendEmailRequest, HttpResponse](serviceUrl + "/send-templated-email", emailData).map {
       result =>
-        Logger.info(s"\n ========= EmailService.sendEmail: ${email} sent successfully ========= \n")
         result
     } recover {
       case e : BadGatewayException =>
