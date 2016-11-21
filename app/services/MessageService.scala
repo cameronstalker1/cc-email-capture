@@ -16,19 +16,16 @@
 
 package services
 
-import play.Play
+import config.ApplicationConfig
 import models.Message
-import play.api.Logger
-import play.api.libs.json.JsObject
 import reactivemongo.api.FailoverStrategy
 import uk.gov.hmrc.mongo.SimpleMongoConnection
 import repositories.MessageRepository
 import uk.gov.hmrc.play.config.RunMode
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object MessageService extends MessageService with RunMode {
-  override val mongoConnectionUri: String = Play.application().configuration().getString(s"$env.mongodb.uri")
+  override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
   override lazy val messageRepository = new MessageRepository
 }
 

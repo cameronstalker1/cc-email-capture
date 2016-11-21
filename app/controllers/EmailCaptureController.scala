@@ -16,11 +16,12 @@
 
 package controllers
 
-import _root_.utils.JsonConstructor
+import config.ApplicationConfig
 import models.{CallBackEventList, EmailResponse, Message}
 import play.api.Logger
 import play.api.Play._
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import reactivemongo.core.errors.ReactiveMongoException
@@ -28,6 +29,7 @@ import services.{AuditEvents, EmailService, MessageService}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import utils.JsonConstructor
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -130,10 +132,10 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
           case Success(callbackEventList) =>
             callbackEventList.foreach {
               event =>
-                configuration.getString(event.eventType.toLowerCase) match {
-                  case Some(_) =>
+                ApplicationConfig.getEventType(event.eventType) match {
+                  case Success(_) =>
                     auditService.emailStatusEventForType(emailAddress + ":::" + event.eventType, source)
-                  case None =>
+                  case _ =>
                     Logger.warn("No need to audit the Event Received: " + event.eventType)
                 }
             }

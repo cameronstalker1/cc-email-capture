@@ -16,11 +16,14 @@
 
 package controllers
 
+import com.kenshoo.play.metrics.PlayModule
 import fixtures.RegistrationData
 import models.Registration
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
+import play.api.Play
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import services.{AuditEvents, RegistartionService, EmailService}
@@ -28,8 +31,11 @@ import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
 import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import play.api.test.Helpers._
 import scala.concurrent.Future
+import Play.current
 
 class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
+
+  override def bindModules = Seq(new PlayModule)
 
   val fakeRequest: FakeRequest[_] = FakeRequest()
   implicit val hc: HeaderCarrier = new HeaderCarrier()
@@ -58,6 +64,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     invalidPayloads.foreach { payload =>
       s"return BAD_REQUEST for invalid payload: '${payload.toString()}'" in {
+        implicit val materializer = Play.application.materializer
         val result = await(registrationController.register()(fakeRequest.withBody(payload)))
         status(result) shouldBe BAD_REQUEST
         bodyOf(result) shouldBe "Empty/Invalid JSON received"

@@ -23,30 +23,31 @@ object MicroServiceBuild extends Build with MicroService {
 }
 
 private object AppDependencies {
-  import play.PlayImport._
+  import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val microServiceBootstrapVersion = "4.4.0"
-  private val playHealthVersion = "1.1.0"
-  private val playJsonLoggerVersion = "2.1.1"
-  private val playReactiveMongoVersion = "4.8.0"
-  private val emailAddressVersion = "1.1.0"
+  private val microServiceBootstrapVersion = "5.8.0"
+  private val playHealthVersion = "2.0.0"
+  private val logbackJsonLoggerVersion = "3.1.0"
+  private val playReactiveMongoVersion = "5.1.0"
+  private val emailAddressVersion = "2.0.0"
   private val playConfigVersion = "3.0.0"
-  private val playAuthorisationVersion = "3.4.0"
-  private val jsonEncryptionVersion = "2.1.0"
+  private val playAuthorisationVersion = "4.2.0"
+  private val jsonEncryptionVersion = "3.1.0"
 
-  private val hmrcTestVersion = "1.9.0"
+  private val hmrcTestVersion = "2.1.0"
   private val scalaTestVersion = "2.2.6"
-  private val scalaTestPlusVersion = "1.2.0"
+  private val scalaTestPlusVersion = "1.5.1"
+  private val mockitoVersion = "1.9.0"
   private val pegDownVersion = "1.6.0"
-  private val reactiveMongoTestVersion = "1.6.0"
+  private val reactiveMongoTestVersion = "2.0.0"
 
   val compile = Seq(
-    ws,
+//    ws,
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactiveMongoVersion,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microServiceBootstrapVersion,
     "uk.gov.hmrc" %% "play-authorisation" % playAuthorisationVersion,
-    "uk.gov.hmrc" %% "play-json-logger" % playJsonLoggerVersion,
+    "uk.gov.hmrc" %% "logback-json-logger" % logbackJsonLoggerVersion,
     "uk.gov.hmrc" %% "play-health" % playHealthVersion,
     "uk.gov.hmrc" %% "play-config" % playConfigVersion,
     "uk.gov.hmrc" %% "emailaddress" % emailAddressVersion,
@@ -65,8 +66,9 @@ private object AppDependencies {
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
         "org.pegdown" % "pegdown" % pegDownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
+        "org.mockito" % "mockito-core" % mockitoVersion % scope,
         "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
-        "org.scalatestplus" %% "play" % scalaTestPlusVersion % scope
+        "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusVersion % scope
       )
     }.test
   }

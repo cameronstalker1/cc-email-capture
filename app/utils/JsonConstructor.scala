@@ -17,12 +17,14 @@
 package utils
 
 import models.EmailResponse
+import play.api.Play._
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
 import play.api.libs.json.{JsValue, Json}
 
 object JsonConstructor {
 
-   def constructErrorResponse(response: EmailResponse): JsValue = {
+  def constructErrorResponse(response: EmailResponse): JsValue = {
     response.errors match {
       case Some(errors) if errors.nonEmpty =>
         constructErrorJson(errors)
