@@ -16,27 +16,29 @@
 
 package test.controllers
 
-import akka.stream.Materializer
 import controllers.{FakeCCEmailApplication, EmailCaptureController}
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
+import play.api.Play
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import reactivemongo.core.errors.ReactiveMongoException
 import services.{EmailService, AuditEvents, MessageService}
 import uk.gov.hmrc.play.http.{InternalServerException, HttpResponse}
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import org.mockito.Matchers.{eq => mockEq, _}
 import scala.concurrent._
 import models.Message
 import scala.concurrent.ExecutionContext.Implicits.global
-import javax.inject._
+import Play.current
 
-class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) extends UnitSpec with MockitoSugar with FakeCCEmailApplication with ScalaFutures {
+class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication with ScalaFutures {
+
+
 
   private trait Setup  {
     val mockMessageService = mock[MessageService]
@@ -59,18 +61,22 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
   "Call captureEmail method" should {
 
     "use the correct email service" in {
+      implicit val materializer = Play.application.materializer
       EmailCaptureController.emailService shouldBe EmailService
     }
 
     "use the correct message service" in {
+      implicit val materializer = Play.application.materializer
       EmailCaptureController.messageService shouldBe MessageService
     }
 
     "use the correct audit service" in {
+      implicit val materializer = Play.application.materializer
       EmailCaptureController.auditService shouldBe AuditEvents
     }
 
     "return 400 status when supplied with invalid json" in new Setup {
+      implicit val materializer = Play.application.materializer
       val fakeBody = Json.obj(
         "invalidJson" -> "Invalid Json"
       )
@@ -79,6 +85,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 404 status when supplied with a value in the email field and the email is invalid" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@gmail.com"
       val dateOfBirth1 = LocalDate.parse("2009-05-04", formatter)
       val dateOfBirth2 = LocalDate.parse("2009-09-06", formatter)
@@ -96,12 +103,14 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 400 status when empty json data is passed" in new Setup {
+      implicit val materializer = Play.application.materializer
       val fakeBody = Json.obj()
       val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
       status(result) shouldBe 400
     }
 
     "return 500 status when the email is valid but there is an RuntimeException with storing the message" in new Setup {
+      implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -115,6 +124,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
       }
 
       "return 500 status when there is an IllegalStateException with storing the message" in new Setup {
+        implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -127,6 +137,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
       }
 
       "return 500 status when the email is valid and there is an ReactiveMongoException with storing the message" in new Setup {
+        implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -142,6 +153,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
 
       //EMAIL SERVICE
       "return 404 status when supplied with a value in the email field and the email is NOT valid" in new Setup {
+        implicit val materializer = Play.application.materializer
         val email = "test@test.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -153,6 +165,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
       }
 
     "return 502 status when supplied with a value in the email field and is BadGateway exception" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@test.com"
       val fakeBody = Json.obj(
         "emailAddress" -> email,
@@ -164,6 +177,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 500 status when supplied with a value in the email field and is InternalServer exception" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@test.com"
       val fakeBody = Json.obj(
         "emailAddress" -> email,
@@ -175,6 +189,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 500 status when there is an RuntimeException when checking the email" in new Setup {
+      implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -186,6 +201,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
       }
 
       "return 500 status when there is an IllegalStateException when checking the email" in new Setup {
+        implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -197,6 +213,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
       }
 
       "return 500 status when there is an RuntimeException when sending the email" in new Setup {
+        implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -210,6 +227,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
       }
 
     "return 500 status when there is an InternalServerException while storing" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@gmail.com"
       val fakeBody = Json.obj(
         "emailAddress" -> email,
@@ -223,6 +241,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
       "return 500 status when there is an IllegalStateException when sending the email" in new Setup {
+        implicit val materializer = Play.application.materializer
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -238,7 +257,9 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
 
   "Call captureEmail method" should {
 
+
     "return 200 status when supplied with a value in the email field" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@gmail.com"
       val dateOfBirth1 = LocalDate.parse("2009-05-04", formatter)
       val dateOfBirth2 = LocalDate.parse("2009-09-06", formatter)
@@ -254,6 +275,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 500 status when storing email fails" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@gmail.com"
       when(mockController.messageService.storeMessage(Message(email, england = true))).thenReturn(Future.failed(new Exception("There was an exception")))
       val result = await(mockController.storeAndSend(Message(email, england = true), "")(hc = any()))
@@ -261,6 +283,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 502 status when supplied with a value in the email field but throws bad gateway error while sending email" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@gmail.com"
       when(mockController.messageService.storeMessage(Message(email, None, true))).thenReturn(Future.successful(Message(email,  england = true)))
       when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = true)), any())(hc = any())).thenReturn(Future.successful(fakeResponseBadGateway))
@@ -269,6 +292,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return 500 status when sending email fails" in new Setup {
+      implicit val materializer = Play.application.materializer
       val email = "test@gmail.com"
       when(mockController.messageService.storeMessage(Message(email, england = false))).thenReturn(Future.successful(Message(email,  england = false)))
       when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = false)), any())(hc = any())).thenReturn(Future.successful(fakeResponseInternalError))
@@ -279,7 +303,9 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
   }
   "Call receive event method" should {
 
+
     "receive event - return 200 status when a valid json is received with eventType as Sent" in new Setup {
+      implicit val materializer = Play.application.materializer
       val callBackResponseJson = """{"events": [ {"event": "Sent", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -287,6 +313,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "receive event - return 200 status when a valid json is received with eventType as Not present in call back list" in new Setup {
+      implicit val materializer = Play.application.materializer
       val callBackResponseJson = """{"events": [ {"event": "Bounce", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -294,6 +321,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "receive event - return 500 status when a invalid json is received" in new Setup {
+      implicit val materializer = Play.application.materializer
       val callBackResponseJson = """{"eventInvalid": [ {"event": "Sent", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -301,6 +329,7 @@ class EmailCaptureControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "receive event - return 500 status when invalid content Type is received" in new Setup {
+      implicit val materializer = Play.application.materializer
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withTextBody("You naughty!"))
 
       whenReady(result) {

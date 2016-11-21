@@ -16,15 +16,13 @@
 
 package controllers
 
-import javax.inject.Inject
-
-import akka.stream.Materializer
 import com.kenshoo.play.metrics.PlayModule
 import fixtures.RegistrationData
 import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
+import play.api.Play
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import services.{AuditEvents, RegistartionService, EmailService}
@@ -32,8 +30,9 @@ import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
 import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import play.api.test.Helpers._
 import scala.concurrent.Future
+import Play.current
 
-class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
+class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
 
   override def bindModules = Seq(new PlayModule)
 
@@ -64,6 +63,7 @@ class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) exte
 
     invalidPayloads.foreach { payload =>
       s"return BAD_REQUEST for invalid payload: '${payload.toString()}'" in {
+        implicit val materializer = Play.application.materializer
         val result = await(registrationController.register()(fakeRequest.withBody(payload)))
         status(result) shouldBe BAD_REQUEST
         bodyOf(result) shouldBe "Empty/Invalid JSON received"
@@ -71,6 +71,7 @@ class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) exte
     }
 
     "return the result of processRegistration if valid payload is given" in {
+      implicit val materializer = Play.application.materializer
       val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
       status(result) shouldBe OK
     }
@@ -95,6 +96,7 @@ class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) exte
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
+        implicit val materializer = Play.application.materializer
         when(
           registrationController.emailService.validEmail(anyString())(any())
         ).thenReturn(
@@ -123,6 +125,7 @@ class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) exte
 
     testCases.foreach { case (testMessage, mockResponse, registrationData, functionStatus) =>
       testMessage in {
+        implicit val materializer = Play.application.materializer
         when(
           registrationController.registartionService.insertOrUpdate(any[Registration])
         ).thenReturn(
@@ -162,6 +165,7 @@ class RegistrationControllerSpec @Inject() (implicit val mat: Materializer) exte
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
+        implicit val materializer = Play.application.materializer
         when(
           registrationController.emailService.sendRegistrationEmail(any[Registration], anyString)(any[HeaderCarrier])
         ).thenReturn(
