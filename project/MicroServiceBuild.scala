@@ -43,7 +43,7 @@ private object AppDependencies {
   private val reactiveMongoTestVersion = "2.0.0"
 
   val compile = Seq(
-//    ws,
+    ws,
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactiveMongoVersion,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microServiceBootstrapVersion,
     "uk.gov.hmrc" %% "play-authorisation" % playAuthorisationVersion,
