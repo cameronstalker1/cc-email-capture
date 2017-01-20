@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
     registartionService.insertOrUpdate(registration).flatMap {
       case true => {
-        registration.dob.getOrElse(List()).map { dob =>
+        registration.dob.map { dob =>
           auditService.sendDOB(Map("dob" -> dob.toString))
         }
         auditEmailLocationCount()

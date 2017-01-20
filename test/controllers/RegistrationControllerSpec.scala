@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     val testCases: List[(String, Future[Boolean], Registration, Int)] = List(
       ("return the result of sendEmail if saving data is successful", Future.successful(true), registration, ACCEPTED),
-      ("return the result of sendEmail if saving data is successful and audit correctly", Future.successful(true), registrationWithoutDOB, ACCEPTED),
+      ("return the result of sendEmail if saving data is successful and audit correctly", Future.successful(true), registration, ACCEPTED),
       ("return the result of INTERNAL_SERVER_ERROR if saving data failed", Future.successful(false), registration, INTERNAL_SERVER_ERROR)
     )
 
