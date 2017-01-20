@@ -37,17 +37,9 @@ class RegistartionRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats)  {
 
   def inserOrUpdate(registration: Registration): Future[Boolean] = {
-
-    val registrationWithCorrectDOB: Registration = if(registration.dob.isDefined && registration.dob.get.isEmpty) {
-      registration.copy(dob = None)
-    }
-    else {
-      registration
-    }
-
     collection.update(
       selector = BSONDocument("emailAddress" -> registration.emailAddress),
-      update = registrationWithCorrectDOB,
+      update = registration,
       upsert = true
     ).map { result =>
       result.ok
