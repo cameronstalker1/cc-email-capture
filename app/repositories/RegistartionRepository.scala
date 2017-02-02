@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,17 +37,9 @@ class RegistartionRepository()(implicit mongo: () => DB)
     ReactiveMongoFormats.objectIdFormats)  {
 
   def inserOrUpdate(registration: Registration): Future[Boolean] = {
-
-    val registrationWithCorrectDOB: Registration = if(registration.dob.isDefined && registration.dob.get.isEmpty) {
-      registration.copy(dob = None)
-    }
-    else {
-      registration
-    }
-
     collection.update(
       selector = BSONDocument("emailAddress" -> registration.emailAddress),
-      update = registrationWithCorrectDOB,
+      update = registration,
       upsert = true
     ).map { result =>
       result.ok
