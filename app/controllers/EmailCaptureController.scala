@@ -55,13 +55,13 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
             case OK => storeAndSend(data, request.host)
             case NOT_FOUND => Future(NotFound)
             case BAD_GATEWAY => Future(BadGateway)
-            case _ => Future(InternalServerError)
+            case _ => Future(ServiceUnavailable)
           }
         }.recover {
           case e: Exception => {
-            Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while checking email:${e.getMessage} ========= \n")
+            Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while validating email:${e.getMessage} ========= \n")
             auditService.sendServiceFailureEvent(data, e)
-            InternalServerError
+            ServiceUnavailable
           }
         }
       }
@@ -88,9 +88,9 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
                 auditService.sendEmailFailureEvent(message)
                 BadGateway
               case _ =>
-                Logger.warn(s"******** storeAndSend: Internal Server Error ******")
+                Logger.warn(s"******** storeAndSend: Other Internal Server Error ******")
                 auditService.sendEmailFailureEvent(message)
-                InternalServerError
+                ServiceUnavailable
             }
           }
         }
@@ -99,17 +99,12 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
       case e: ReactiveMongoException => {
         Logger.warn(s"\n ========= EmailCaptureController: captureEmail ReactiveMongoException while storing data: ${e.getMessage} ========= \n")
         auditService.sendDataStoreFailureEvent(message, e)
-        InternalServerError
-      }
-      case e: IllegalStateException => {
-        Logger.warn(s"\n ========= EmailCaptureController: captureEmail IllegalStateException while storing data: ${e.getMessage} ========= \n")
-        auditService.sendDataStoreFailureEvent(message, e)
-        InternalServerError
+        ServiceUnavailable
       }
       case e: Exception => {
-        Logger.warn(s"\n ========= EmailCaptureController: captureEmail Exception while storing data: ${e.getMessage} ========= \n")
+        Logger.warn(s"\n ========= EmailCaptureController: captureEmail Other Exception while storing data: ${e.getMessage} ========= \n")
         auditService.sendDataStoreFailureEvent(message, e)
-        InternalServerError
+        BadGateway
       }
     }
   }
@@ -120,14 +115,14 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
         responseFun.apply(js.json)
       case _ =>
         Logger.warn("Invalid request body type passed to microservice - just JSON accepted")
-        Future.successful(InternalServerError(JsonConstructor.constructErrorJson(Messages("content_type.invalid"))))
+        Future.successful(BadRequest(JsonConstructor.constructErrorJson(Messages("content_type.invalid"))))
     }
   }
 
   def receiveEvent(emailAddress: String, source: String) : Action[AnyContent] = Action.async {
     implicit request =>
-      def response(requestJson: JsValue) = {
 
+      def response(requestJson: JsValue) = {
         Try(requestJson.as[CallBackEventList](CallBackEventList.reader).callBackEvents) match {
           case Success(callbackEventList) =>
             callbackEventList.foreach {
@@ -141,9 +136,9 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
             }
             Future.successful(Ok)
           case Failure(e) =>
-            Logger.warn("receiveEvent: Internal Server Error")
-            Future.successful(InternalServerError(JsonConstructor.constructErrorResponse(EmailResponse
-              (INTERNAL_SERVER_ERROR, Some(e.getMessage)))))
+            Logger.warn("receiveEvent: Other Internal Server Error")
+            Future.successful(BadGateway(JsonConstructor.constructErrorResponse(EmailResponse
+              (BAD_GATEWAY, Some(e.getMessage)))))
         }
       }
       getResponseJson(request, response)

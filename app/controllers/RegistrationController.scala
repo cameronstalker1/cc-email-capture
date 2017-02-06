@@ -29,13 +29,13 @@ import scala.concurrent.Future
 
 object RegistrationController extends RegistrationController {
   override val emailService: EmailService = EmailService
-  override val registartionService: RegistartionService = RegistartionService
+  override val registrationService: RegistartionService = RegistartionService
   override val auditService: AuditEvents = AuditEvents
 }
 
 trait RegistrationController extends BaseController with ServicesConfig {
   val emailService: EmailService
-  val registartionService: RegistartionService
+  val registrationService: RegistartionService
   val auditService: AuditEvents
 
   def register : Action[JsObject] = Action.async(parse.json[JsObject]) {
@@ -44,33 +44,30 @@ trait RegistrationController extends BaseController with ServicesConfig {
         case Some(registration) => processRegistration(registration, request.host)
         case _ => {
           Logger.warn("\n ========= SubscribeController: Empty/Invalid JSON received ========= \n")
-          Future.successful(
-            BadRequest("Empty/Invalid JSON received")
-          )
+          Future.successful(BadRequest("Empty/Invalid JSON received"))
         }
       }
   }
 
   def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
-
     emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
       validationResult.status match {
         case OK => saveAndSendEmail(registration, host)
         case _ => {
           Logger.warn(s"\n ========= SubscribeController: Checking email return status: ${validationResult.status} ========= \n")
-          Future(NotFound(s"Checking email returned status: ${validationResult.status}"))
+          Future(NotFound(s"Not a valid email: ${validationResult.status}"))
         }
       }
     }.recover {
       case ex: Exception => {
-        Logger.error(s"\n ========= SubscribeController: Exception while checking email: ${ex.getMessage} ========= \n")
-        InternalServerError("Exception while checking email")
+        Logger.warn(s"\n ========= SubscribeController: Exception while checking email: ${ex.getMessage} ========= \n")
+        BadGateway(s"Exception:: Email service unavailable::: ${ex.getMessage}")
       }
     }
   }
 
   def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
-    registartionService.insertOrUpdate(registration).flatMap {
+    registrationService.insertOrUpdate(registration).flatMap {
       case true => {
         registration.dob.map { dob =>
           auditService.sendDOB(Map("dob" -> dob.toString))
@@ -79,8 +76,8 @@ trait RegistrationController extends BaseController with ServicesConfig {
         sendEmail(registration, host)
       }
       case false => {
-        Logger.warn(s"******** SubscribeController.saveAndSendEmail: Inser/Update failed ******")
-        Future(InternalServerError)
+        Logger.warn(s"******** SubscribeController.saveAndSendEmail: Insert/Update failed ******")
+        Future(ServiceUnavailable)
       }
     }
   }
@@ -95,16 +92,16 @@ trait RegistrationController extends BaseController with ServicesConfig {
           Logger.warn("******** SubscribeController.sendEmail: Bad Gateway Error ******")
           BadGateway
         case _ =>
-          Logger.warn("******** SubscribeController.sendEmail: Internal Server Error ******")
-          InternalServerError
+          Logger.warn("******** SubscribeController.sendEmail: Service Unavailable Error ******")
+          ServiceUnavailable
       }
     }
   }
 
   private def auditEmailLocationCount() (implicit hc: HeaderCarrier): Unit = {
-    registartionService.getLocationCount().onSuccess {
+    registrationService.getLocationCount().onSuccess {
       case locationCountMap if !locationCountMap.isEmpty =>
-        registartionService.getEmailCount().onSuccess {
+        registrationService.getEmailCount().onSuccess {
           case totalCount if totalCount >= 0 =>
             auditService.sendEmailLocationCount(
               locationCountMap.map(x => (x._1, x._2.toString)) ++ Map("email-count" -> totalCount.toString)
