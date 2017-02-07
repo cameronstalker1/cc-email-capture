@@ -19,7 +19,6 @@ package controllers
 import com.kenshoo.play.metrics.PlayModule
 import fixtures.RegistrationData
 import models.Registration
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
@@ -46,8 +45,8 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       RegistrationController.emailService shouldBe EmailService
     }
 
-    "use rhe right RegistartionService" in {
-      RegistrationController.registartionService shouldBe RegistartionService
+    "use rhe right RegistrationService" in {
+      RegistrationController.registrationService shouldBe RegistartionService
     }
 
   }
@@ -56,7 +55,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
-      override val registartionService: RegistartionService = mock[RegistartionService]
+      override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
 
       override def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
@@ -82,7 +81,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
-      override val registartionService: RegistartionService = mock[RegistartionService]
+      override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
 
       override def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
@@ -90,8 +89,8 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
       ("return the result of saveAndSendEmail if validation is successful", Future.successful(HttpResponse(OK)), ACCEPTED),
-      ("return the result of NOT_FOUND if validation failed", Future.successful(HttpResponse(INTERNAL_SERVER_ERROR)), NOT_FOUND),
-      ("return the result of INTERNAL_SERVER_ERROR if validation throws exception", Future.failed(new RuntimeException), INTERNAL_SERVER_ERROR)
+      ("return the result of NOT_FOUND if validation failed", Future.successful(HttpResponse(BAD_GATEWAY)), NOT_FOUND),
+      ("return the result of INTERNAL_SERVER_ERROR if validation throws exception", Future.failed(new RuntimeException), BAD_GATEWAY)
     )
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
@@ -110,7 +109,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   "saveAndSendEmail" should {
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
-      override val registartionService: RegistartionService = mock[RegistartionService]
+      override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
 
       override def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
@@ -119,25 +118,25 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     val testCases: List[(String, Future[Boolean], Registration, Int)] = List(
       ("return the result of sendEmail if saving data is successful", Future.successful(true), registration, ACCEPTED),
       ("return the result of sendEmail if saving data is successful and audit correctly", Future.successful(true), registration, ACCEPTED),
-      ("return the result of INTERNAL_SERVER_ERROR if saving data failed", Future.successful(false), registration, INTERNAL_SERVER_ERROR)
+      ("return the result of INTERNAL_SERVER_ERROR if saving data failed", Future.successful(false), registration, SERVICE_UNAVAILABLE)
     )
 
     testCases.foreach { case (testMessage, mockResponse, registrationData, functionStatus) =>
       testMessage in {
         when(
-          registrationController.registartionService.insertOrUpdate(any[Registration])
+          registrationController.registrationService.insertOrUpdate(any[Registration])
         ).thenReturn(
           mockResponse
         )
 
         when(
-          registrationController.registartionService.getEmailCount()
+          registrationController.registrationService.getEmailCount()
         ).thenReturn(
           Future.successful(1)
         )
 
         when(
-          registrationController.registartionService.getLocationCount()
+          registrationController.registrationService.getLocationCount()
         ).thenReturn(
           Future.successful(Map("test"->2))
         )
@@ -151,14 +150,14 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   "sendEmail" should {
     val registrationController: RegistrationController = new RegistrationController {
       override val emailService = mock[EmailService]
-      override val registartionService: RegistartionService = mock[RegistartionService]
+      override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
     }
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
       ("return the result of OK if sending email returns OK", Future.successful(HttpResponse(ACCEPTED)), OK),
       ("return the result of BAD_GATEWAY if sending email returns BAD_GATEWAY", Future.successful(HttpResponse(BAD_GATEWAY)), BAD_GATEWAY),
-      ("return the result of INTERNAL_SERVER_ERROR if sending email returns different result", Future.successful(HttpResponse(BAD_REQUEST)), INTERNAL_SERVER_ERROR)
+      ("return the result of INTERNAL_SERVER_ERROR if sending email returns different result", Future.successful(HttpResponse(BAD_REQUEST)), SERVICE_UNAVAILABLE)
     )
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>

@@ -17,10 +17,9 @@
 package services
 
 import fixtures.RegistrationData
-import models.{Registration, SendEmailRequest}
+import models.SendEmailRequest
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Writes
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.Mockito._
@@ -35,18 +34,15 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
   "Calling Send" should {
     val mockPOST = mock[HttpPost]
     val emailService = new EmailService {
-
-      override val httpGetRequest: HttpGet = mock[HttpGet]
-
-      override val httpPostRequest: HttpPost = mockPOST
-
-      override val serviceUrl: String = "service-url"
-    }
+    override val httpGetRequest: HttpGet = mock[HttpGet]
+    override val httpPostRequest: HttpPost = mockPOST
+    override val serviceUrl: String = "service-url"
+  }
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
-      ("send a succesful email", Future.successful(HttpResponse(OK)), OK),
+      ("send a successful email", Future.successful(HttpResponse(OK)), OK),
       ("return BAD_GATEWAY if posts throws badGateway exception", Future.failed(new BadGatewayException("Bad gateway")), BAD_GATEWAY),
-      ("return INTERNAL_SERVER_ERROR if posts throws any exception", Future.failed(new Exception("Exception")), INTERNAL_SERVER_ERROR)
+      ("return INTERNAL_SERVER_ERROR if posts throws any exception", Future.failed(new Exception("Exception")), SERVICE_UNAVAILABLE)
     )
 
     testCases.foreach { case (testMessage, mockResult, expectedStatus) =>
@@ -65,13 +61,9 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
 
   "Calling send registration" should{
     val emailService = new EmailService {
-
       override val httpGetRequest: HttpGet = mock[HttpGet]
-
       override val httpPostRequest: HttpPost = mock[HttpPost]
-
       override val serviceUrl: String = "service-url"
-
       override def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.successful(HttpResponse(OK))
     }
 
