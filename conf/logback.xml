@@ -34,7 +34,6 @@
         </encoder>
     </appender>
 
-
     <logger name="accesslog" level="INFO" additivity="false">
         <appender-ref ref="ACCESS_LOG_FILE" />
     </logger>
@@ -44,10 +43,10 @@
     </logger>
 
     <logger name="uk.gov" level="INFO"/>
+    <logger name="com.google.inject" level="WARN"/>
+    <logger name="application" level="DEBUG"/>
 
-    <logger name="application" level="WARN"/>
-
-    <logger name="connector" level="TRACE">
+    <logger name="connector" level="WARN">
         <appender-ref ref="STDOUT"/>
     </logger>
 
@@ -55,4 +54,8 @@
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>
+
+    <logger name="com.ning.http.client" level="WARN"/>
+    <logger name="org.asynchttpclient.netty.channel.DefaultChannelPool" level="WARN"/>
+    <logger name="org.asynchttpclient.netty" level="WARN"/>
 </configuration>
