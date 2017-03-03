@@ -16,18 +16,33 @@
 
 package config
 
-import play.api.Play._
+import org.joda.time.LocalDate
+import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
 import uk.gov.hmrc.play.config.ServicesConfig
 import scala.util.Try
 
 object ApplicationConfig extends ServicesConfig {
 
-  private def loadConfig(key: String) = configuration.getString(key).getOrElse(throw new Exception(s"Missing key: $key"))
+  private def getListString(key: String, delimiter: String): List[String] = getString(key).split(delimiter).toList
 
-  lazy val registrationCollection = Try(loadConfig("settings.registrationCollection")).getOrElse("")
+  lazy val ccEmailCollection: String = getString("settings.collections.cc")
+  
+  lazy val csiRegistrationCollection: String = getString("settings.collections.csi")
+  
+  lazy val mongoConnectionUri: String = getString(s"$env.mongodb.uri")
 
-  lazy val mongoConnectionUri = Try(loadConfig(s"$env.mongodb.uri")).getOrElse("")
+  def getEventType(eventType: String): Try[String] = Try(getString(eventType.toLowerCase))
 
-  def getEventType(eventType: String): Try[String] = Try(loadConfig(eventType.toLowerCase))
+  lazy val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
+
+  lazy val mailStartDate: LocalDate = LocalDate.parse(getString("mail.start.date"), mailDateFormatter)
+
+  lazy val mailEndDate: LocalDate = LocalDate.parse(getString("mail.end.date"), mailDateFormatter)
+
+  lazy val mailCountries: List[String] = getListString("mail.countries", ",")
+
+  lazy val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
+
+  lazy val mailSource: List[String] = getListString("mail.source", ",")
 
 }

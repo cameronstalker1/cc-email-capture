@@ -81,4 +81,8 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
   override val microserviceAuditFilter = MicroserviceAuditFilter
 
   override val authFilter = Some(MicroserviceAuthFilter)
+
+  override def onStart(app: Application): Unit = {
+    super.onStart(app)
+  }
 }

@@ -33,7 +33,7 @@ import scala.concurrent.Future
 
 
 class RegistartionRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[Registration, BSONObjectID](registrationCollection, mongo, Registration.registrationFormat,
+  extends ReactiveRepository[Registration, BSONObjectID](csiRegistrationCollection, mongo, Registration.registrationFormat,
     ReactiveMongoFormats.objectIdFormats)  {
 
   def inserOrUpdate(registration: Registration): Future[Boolean] = {
