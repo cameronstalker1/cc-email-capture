@@ -19,6 +19,7 @@ package config
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api.{Application, Configuration, Play}
+import services.SchedulerService
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -30,7 +31,7 @@ import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
-
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch {
   override val hooks = NoneRequired
@@ -71,6 +72,8 @@ object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilte
 }
 
 object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
+
+
   override val auditConnector = MicroserviceAuditConnector
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] =
@@ -84,5 +87,8 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
 
   override def onStart(app: Application): Unit = {
     super.onStart(app)
+
+    SchedulerService.getEmails()
+
   }
 }

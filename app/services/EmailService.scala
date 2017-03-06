@@ -78,7 +78,12 @@ trait EmailService extends ServicesConfig {
 
     val toList: List[EmailAddress] = List(EmailAddress(email))
     val params: Map[String, String] = Map("emailAddress" -> email)
-    val eventUrl = Some("http://" + host + controllers.routes.EmailCaptureController.receiveEvent(email, source).url)
+    val eventUrl = if(source.nonEmpty) {
+      Some("http://" + host + controllers.routes.EmailCaptureController.receiveEvent(email, source).url)
+    }
+    else {
+      None
+    }
 
     val emailData: SendEmailRequest = SendEmailRequest(
       to = toList,

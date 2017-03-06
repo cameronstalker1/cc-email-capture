@@ -16,6 +16,7 @@
 
 package repositories
 
+import config.ApplicationConfig
 import config.ApplicationConfig._
 import models.Registration
 import play.api.libs.functional.syntax._
@@ -25,12 +26,8 @@ import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
 import reactivemongo.core.commands.{Aggregate, GroupField, SumValue}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
-
-
 
 class RegistartionRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Registration, BSONObjectID](csiRegistrationCollection, mongo, Registration.registrationFormat,
@@ -70,6 +67,51 @@ class RegistartionRepository()(implicit mongo: () => DB)
       ReadPreference.secondaryPreferred
     ).map(locationMap => statusZeroCounts ++ locationMap.toSeq.map(Json.toJson(_).as(processingLocationMap)))
 
+  }
+
+  def getEmails(): Future[List[String]] = {
+    val countries = if(ApplicationConfig.mailCountries.isSuccess) {
+      Json.obj(
+        "location" -> Json.obj(
+          "$in" -> ApplicationConfig.mailCountries.get
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val startPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$gte" -> ApplicationConfig.mailStartDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val endPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$lte" -> ApplicationConfig.mailEndDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod)).cursor[Registration]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
   }
 
 }

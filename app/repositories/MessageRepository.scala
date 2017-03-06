@@ -16,7 +16,8 @@
 
 package repositories
 
-import models.Message
+import config.ApplicationConfig
+import models.{Registration, Message}
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
@@ -59,6 +60,49 @@ class MessageRepository()(implicit mongo: () => DB)
           "$unset" -> Json.obj("dob" -> ""))
 
     }
+  }
+
+  def getEmails(): Future[List[String]] = {
+    val countries = if(ApplicationConfig.mailCountries.isSuccess &&
+      !(ApplicationConfig.mailCountries.get.contains("england") && ApplicationConfig.mailCountries.get.exists(_ != "england"))
+    ) {
+      Json.obj(
+        "england" -> ApplicationConfig.mailCountries.get.contains("england")
+      )
+    }
+    else {
+      Json.obj()
+    }
+    val startPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$gte" -> ApplicationConfig.mailStartDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val endPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$lte" -> ApplicationConfig.mailEndDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod)).cursor[Message]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
   }
 
 }

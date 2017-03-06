@@ -35,14 +35,16 @@ object ApplicationConfig extends ServicesConfig {
 
   lazy val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
 
-  lazy val mailStartDate: LocalDate = LocalDate.parse(getString("mail.start.date"), mailDateFormatter)
+  lazy val mailStartDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.start.date"), mailDateFormatter))
 
-  lazy val mailEndDate: LocalDate = LocalDate.parse(getString("mail.end.date"), mailDateFormatter)
+  lazy val mailEndDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.end.date"), mailDateFormatter))
 
-  lazy val mailCountries: List[String] = getListString("mail.countries", ",")
+  lazy val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
 
   lazy val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
 
   lazy val mailSource: List[String] = getListString("mail.source", ",")
+
+  lazy val mailTemplate: String = getString("mail.template")
 
 }
