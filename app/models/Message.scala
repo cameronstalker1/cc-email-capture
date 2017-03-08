@@ -16,10 +16,10 @@
 
 package models
 
-import org.joda.time.LocalDate
+import org.joda.time.{LocalDateTime, LocalDate}
 import play.api.libs.json.Json
 
-case class Message (emailAddress: String, dob: Option[List[LocalDate]] = None, england : Boolean)
+case class Message (emailAddress: String, dob: Option[List[LocalDate]] = None, england: Boolean, sent: Option[List[String]] = None)
 
 object Message {
   implicit val formats = Json.format[Message]

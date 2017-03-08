@@ -302,7 +302,6 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "receive event - return 400 status when invalid content Type is received" in new Setup {
-      implicit val materializer = Play.application.materializer
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withTextBody("You naughty!"))
 
       whenReady(result) {

@@ -32,12 +32,9 @@ import play.api.test.Helpers._
 import scala.concurrent.Future
 import Play.current
 
-class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with WithFakeApplication {
-
-  override def bindModules = Seq(new PlayModule)
+class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with FakeCCEmailApplication {
 
   val fakeRequest: FakeRequest[_] = FakeRequest()
-  implicit val hc: HeaderCarrier = new HeaderCarrier()
 
   "verify that controller is set up correctly" should {
 
@@ -63,7 +60,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     invalidPayloads.foreach { payload =>
       s"return BAD_REQUEST for invalid payload: '${payload.toString()}'" in {
-        implicit val materializer = Play.application.materializer
         val result = await(registrationController.register()(fakeRequest.withBody(payload)))
         status(result) shouldBe BAD_REQUEST
         bodyOf(result) shouldBe "Empty/Invalid JSON received"

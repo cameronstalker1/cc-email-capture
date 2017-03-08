@@ -16,6 +16,7 @@
 
 package repositories
 
+import org.joda.time.LocalDateTime
 import config.ApplicationConfig
 import models.{Registration, Message}
 import org.joda.time.DateTime
@@ -62,6 +63,20 @@ class MessageRepository()(implicit mongo: () => DB)
     }
   }
 
+  def markEmailAsSent(email: String): Future[Boolean] = {
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    val update = Json.obj(
+      "$push" -> Json.obj(
+        "sent" -> LocalDateTime.now().toString
+      )
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
   def getEmails(): Future[List[String]] = {
     val countries = if(ApplicationConfig.mailCountries.isSuccess &&
       !(ApplicationConfig.mailCountries.get.contains("england") && ApplicationConfig.mailCountries.get.exists(_ != "england"))
@@ -98,7 +113,18 @@ class MessageRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    collection.find(countries ++ startPeriod.deepMerge(endPeriod)).cursor[Message]().collect[List]().map(
+
+    val excludeSentEmails = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "sent" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails).cursor[Message]().collect[List]().map(
       _.map(
         _.emailAddress
       )

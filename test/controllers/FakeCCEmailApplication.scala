@@ -18,18 +18,29 @@ package controllers
 
 import com.kenshoo.play.metrics.PlayModule
 import org.scalatest.Suite
-import play.api.test.FakeApplication
-import uk.gov.hmrc.play.test.WithFakeApplication
+import org.scalatestplus.play.OneAppPerSuite
+import uk.gov.hmrc.play.http.HeaderCarrier
+import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import akka.stream.Materializer
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
-trait FakeCCEmailApplication extends WithFakeApplication {
+trait FakeCCEmailApplication extends OneAppPerSuite {
   this: Suite =>
-
-  override def bindModules = Seq(new PlayModule)
 
   val config : Map[String, _] = Map(
     "csrf.sign.tokens" -> false,
     "Test.microservice.services.email.host" -> "localhost",
     "Test.microservice.services.email.port" -> "8300"
   )
-  override lazy val fakeApplication = FakeApplication(additionalConfiguration = config)
+
+  implicit override lazy val app: Application = new GuiceApplicationBuilder(
+    disabled = Seq(classOf[com.kenshoo.play.metrics.PlayModule])
+  ).configure(config)
+    .build()
+
+  implicit lazy val materializer: Materializer = app.materializer
+  implicit lazy val messages: Messages = applicationMessages
+  implicit val hc = HeaderCarrier()
 }

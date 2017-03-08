@@ -16,6 +16,7 @@
 
 package repositories
 
+import org.joda.time.LocalDateTime
 import config.ApplicationConfig
 import config.ApplicationConfig._
 import models.Registration
@@ -69,6 +70,20 @@ class RegistartionRepository()(implicit mongo: () => DB)
 
   }
 
+  def markEmailAsSent(email: String): Future[Boolean] = {
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    val update = Json.obj(
+      "$push" -> Json.obj(
+        "sent" -> LocalDateTime.now().toString
+      )
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
   def getEmails(): Future[List[String]] = {
     val countries = if(ApplicationConfig.mailCountries.isSuccess) {
       Json.obj(
@@ -107,7 +122,18 @@ class RegistartionRepository()(implicit mongo: () => DB)
       Json.obj()
     }
 
-    collection.find(countries ++ startPeriod.deepMerge(endPeriod)).cursor[Registration]().collect[List]().map(
+    val excludeSentEmails = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "sent" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails).cursor[Registration]().collect[List]().map(
       _.map(
         _.emailAddress
       )

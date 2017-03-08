@@ -20,6 +20,7 @@ import config.ApplicationConfig
 import controllers.routes
 import models.EmailLock
 import org.joda.time.Duration
+import play.api.Logger
 import play.libs.Akka
 import reactivemongo.api.FailoverStrategy
 import repositories.{MessageRepository, RegistartionRepository}
@@ -44,51 +45,72 @@ trait SchedulerService extends SimpleMongoConnection  {
   val lockRepository: LockRepository
   val emailService: EmailService
 
-  def getEmails() = {
-    if(ApplicationConfig.mailSource == List("childcare-schemes-interest-frontend")) {
+  def getEmailsList(): Future[List[String]] = {
+    if (ApplicationConfig.mailSource == List("childcare-schemes-interest-frontend")) {
       registartionRepository.getEmails().map { csiResult =>
-        sendEmail(csiResult)
+        csiResult
       }
     } else if (ApplicationConfig.mailSource == List("cc-frontend")) {
       messageRepository.getEmails().map { ccResult =>
-        sendEmail(ccResult)
+        ccResult
       }
     } else {
       registartionRepository.getEmails().flatMap { csiResult =>
         messageRepository.getEmails().map { ccResult =>
-          sendEmail((csiResult ++ ccResult).distinct)
+          (csiResult ++ ccResult).distinct
         }
       }
     }
   }
 
-  def sendEmail(emails: List[String]) = {
+  def lockEmails(): Future[Option[List[String]]] = {
+    val lock = EmailLock("emailLock", new Duration(60000), lockRepository)
+    lock.tryToAcquireOrRenewLock {
+      getEmailsList().map(result => result)
+    }
+  }
+
+  def getEmails() = {
+    lockEmails().map { emailsList =>
+      sendEmail(emailsList)
+    }
+  }
+
+  def sendEmail(emailsList: Option[List[String]]) = {
     // Send email
     implicit val hc: HeaderCarrier = new HeaderCarrier()
-    val lock = EmailLock("emailLock", new Duration(60000), lockRepository)
 
-    println("------------- emails: " + emails)
+    println("------------- emails: " + emailsList)
 
 
     import concurrent.duration._
 
-    var emailsToSend = emails
 
-    def job(email: String) = lock.tryToAcquireOrRenewLock {
-      println("---------- send to: " + email)
-      emailService.send(ApplicationConfig.mailTemplate, email, "", "").map { result =>
-        emailsToSend = emailsToSend.tail
-        // TODO: Mark in db this email as sent
-      }. recover {
-        case ex: Exception => {
-          // TODO: Log exception
+    if (emailsList.isDefined && emailsList.get.nonEmpty) {
+      var emailsToSend = emailsList.get
+
+      def job(email: String) = {
+        println("---------- send to: " + email)
+        emailService.send(ApplicationConfig.mailTemplate, email, "", "").map { result =>
+          emailsToSend = emailsToSend.tail
+          if(ApplicationConfig.mailSource.contains("cc-frontend")) {
+            messageRepository.markEmailAsSent(email)
+          }
+          if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+            registartionRepository.markEmailAsSent(email)
+          }
+        }. recover {
+          case ex: Exception => {
+            // TODO: Log exception
+            Logger.error("Can't send email")
+          }
         }
       }
-    }
 
-    Akka.system.scheduler.schedule(10 milliseconds, 10 seconds) {
-      if(emailsToSend.nonEmpty) {
-        job(emailsToSend.head)
+      Akka.system.scheduler.schedule(10 milliseconds, 10 seconds) {
+        if (emailsToSend.nonEmpty) {
+          job(emailsToSend.head)
+        }
       }
     }
   }
