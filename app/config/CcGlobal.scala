@@ -88,7 +88,9 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
   override def onStart(app: Application): Unit = {
     super.onStart(app)
 
-    SchedulerService.getEmails()
+    if(ApplicationConfig.mailEnabled) {
+      SchedulerService.getEmails()
+    }
 
   }
 }

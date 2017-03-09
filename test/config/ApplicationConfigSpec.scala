@@ -20,6 +20,8 @@ import controllers.FakeCCEmailApplication
 import org.joda.time.LocalDate
 import uk.gov.hmrc.play.test.UnitSpec
 
+import scala.util.Success
+
 class ApplicationConfigSpec extends UnitSpec with FakeCCEmailApplication {
 
   "ApplicationConfig" should {
@@ -30,9 +32,9 @@ class ApplicationConfigSpec extends UnitSpec with FakeCCEmailApplication {
     }
 
     "contain correct configuration for sending emails" in {
-      ApplicationConfig.mailStartDate shouldBe LocalDate.parse("2016-1-1")
-      ApplicationConfig.mailEndDate shouldBe LocalDate.parse("2017-1-1")
-      ApplicationConfig.mailCountries shouldBe List("england", "scotland", "wales", "northern-ireland")
+      ApplicationConfig.mailStartDate shouldBe Success(LocalDate.parse("2011-1-1"))
+      ApplicationConfig.mailEndDate shouldBe Success(LocalDate.parse("2012-1-1"))
+      ApplicationConfig.mailCountries shouldBe Success(List("england", "scotland", "wales", "northern-ireland"))
       ApplicationConfig.mailExcludeSent shouldBe true
       ApplicationConfig.mailSource shouldBe List("childcare-schemes-interest-frontend", "cc-frontend")
     }

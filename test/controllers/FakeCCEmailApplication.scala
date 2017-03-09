@@ -32,7 +32,9 @@ trait FakeCCEmailApplication extends OneAppPerSuite {
   val config : Map[String, _] = Map(
     "csrf.sign.tokens" -> false,
     "Test.microservice.services.email.host" -> "localhost",
-    "Test.microservice.services.email.port" -> "8300"
+    "Test.microservice.services.email.port" -> "8300",
+    "Test.mongodb.uri" -> "mongodb://localhost:27017/cc-email-capture",
+    "mail.enabled" -> false
   )
 
   implicit override lazy val app: Application = new GuiceApplicationBuilder(

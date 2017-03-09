@@ -33,6 +33,8 @@ object ApplicationConfig extends ServicesConfig {
 
   def getEventType(eventType: String): Try[String] = Try(getString(eventType.toLowerCase))
 
+  lazy val mailEnabled: Boolean = getBoolean("mail.enabled")
+
   lazy val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
 
   lazy val mailStartDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.start.date"), mailDateFormatter))
