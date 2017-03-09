@@ -52,7 +52,7 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
       case Some(data) => {
         emailService.validEmail(data.emailAddress).flatMap { result =>
           result.status match {
-            case OK => storeAndSend(data, request.host)
+            case OK => storeAndSend(data)
             case NOT_FOUND => Future(NotFound)
             case BAD_GATEWAY => Future(BadGateway)
             case _ => Future(ServiceUnavailable)
@@ -73,12 +73,12 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
     }
   }
 
-  def storeAndSend(message: Message, host : String)(implicit hc: HeaderCarrier): Future[Status] = {
+  def storeAndSend(message: Message)(implicit hc: HeaderCarrier): Future[Status] = {
     messageService.storeMessage(message).flatMap { result =>
       result match {
         case data: Message => {
           auditService.sendDataStoreSuccessEvent(message)
-          emailService.sendEmail(message, host).map { emailResponse =>
+          emailService.sendEmail(message).map { emailResponse =>
             emailResponse.status match {
               case ACCEPTED =>
                 auditService.sendEmailSuccessEvent(message)

@@ -32,11 +32,13 @@ class ApplicationConfigSpec extends UnitSpec with FakeCCEmailApplication {
     }
 
     "contain correct configuration for sending emails" in {
+      ApplicationConfig.mailEnabled shouldBe false
       ApplicationConfig.mailStartDate shouldBe Success(LocalDate.parse("2011-1-1"))
       ApplicationConfig.mailEndDate shouldBe Success(LocalDate.parse("2012-1-1"))
       ApplicationConfig.mailCountries shouldBe Success(List("england", "scotland", "wales", "northern-ireland"))
       ApplicationConfig.mailExcludeSent shouldBe true
       ApplicationConfig.mailSource shouldBe List("childcare-schemes-interest-frontend", "cc-frontend")
+      ApplicationConfig.mailTemplate shouldBe "childcare_registration_email"
     }
 
   }

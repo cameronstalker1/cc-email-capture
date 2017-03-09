@@ -17,7 +17,6 @@
 package services
 
 import config.ApplicationConfig
-import controllers.routes
 import models.EmailLock
 import org.joda.time.Duration
 import play.api.Logger
@@ -29,6 +28,7 @@ import uk.gov.hmrc.mongo.SimpleMongoConnection
 import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import concurrent.duration._
 
 object SchedulerService extends SchedulerService {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
@@ -78,38 +78,32 @@ trait SchedulerService extends SimpleMongoConnection  {
 
   def sendEmail(emailsList: Option[List[String]]) = {
     // Send email
-    implicit val hc: HeaderCarrier = new HeaderCarrier()
 
     println("------------- emails: " + emailsList)
 
-
-    import concurrent.duration._
-
-
     if (emailsList.isDefined && emailsList.get.nonEmpty) {
-      var emailsToSend = emailsList.get
 
-      def job(email: String) = {
-        println("---------- send to: " + email)
-        emailService.send(ApplicationConfig.mailTemplate, email, "", "").map { result =>
-          emailsToSend = emailsToSend.tail
-          if(ApplicationConfig.mailSource.contains("cc-frontend")) {
-            messageRepository.markEmailAsSent(email)
-          }
-          if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
-            registartionRepository.markEmailAsSent(email)
-          }
-        }. recover {
-          case ex: Exception => {
-            // TODO: Log exception
-            Logger.error("Can't send email")
-          }
-        }
-      }
+      implicit val hc: HeaderCarrier = new HeaderCarrier()
+
+      var emailsToSend = emailsList.get
 
       Akka.system.scheduler.schedule(10 milliseconds, 10 seconds) {
         if (emailsToSend.nonEmpty) {
-          job(emailsToSend.head)
+          val email = emailsToSend.head
+          println("---------- send to: " + email)
+          emailService.send(ApplicationConfig.mailTemplate, email, "").map { result =>
+            emailsToSend = emailsToSend.tail
+            if(ApplicationConfig.mailSource.contains("cc-frontend")) {
+              messageRepository.markEmailAsSent(email)
+            }
+            if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+              registartionRepository.markEmailAsSent(email)
+            }
+          }. recover {
+            case ex: Exception => {
+              Logger.error("Can't send email")
+            }
+          }
         }
       }
     }

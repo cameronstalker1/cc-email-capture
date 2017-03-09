@@ -55,7 +55,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
 
-      override def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
+      override def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
     }
 
     invalidPayloads.foreach { payload =>
@@ -80,7 +80,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
 
-      override def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
+      override def saveAndSendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
     }
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
@@ -96,7 +96,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
         ).thenReturn(
           mockResponse
         )
-        val result = await(registrationController.processRegistration(registration, "host"))
+        val result = await(registrationController.processRegistration(registration))
         status(result) shouldBe functionStatus
       }
     }
@@ -108,7 +108,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       override val registrationService: RegistartionService = mock[RegistartionService]
       override val auditService: AuditEvents = mock[AuditEvents]
 
-      override def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
+      override def sendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
     }
 
     val testCases: List[(String, Future[Boolean], Registration, Int)] = List(
@@ -137,7 +137,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
           Future.successful(Map("test"->2))
         )
 
-        val result = await(registrationController.saveAndSendEmail(registrationData, "host"))
+        val result = await(registrationController.saveAndSendEmail(registrationData))
         status(result) shouldBe functionStatus
       }
     }
@@ -159,12 +159,12 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
         when(
-          registrationController.emailService.sendRegistrationEmail(any[Registration], anyString)(any[HeaderCarrier])
+          registrationController.emailService.sendRegistrationEmail(any[Registration])(any[HeaderCarrier])
         ).thenReturn(
           mockResponse
         )
 
-        val result = await(registrationController.sendEmail(registration, "host"))
+        val result = await(registrationController.sendEmail(registration))
         status(result) shouldBe functionStatus
       }
     }
