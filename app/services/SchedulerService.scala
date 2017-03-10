@@ -84,7 +84,7 @@ trait SchedulerService extends SimpleMongoConnection  {
   }
 
   def lockEmails(): Future[Option[List[String]]] = {
-    val lock = EmailLock("emailLock", new Duration(60000), lockRepository)
+    val lock = EmailLock("emailLock", new Duration(ApplicationConfig.mailLocking), lockRepository)
     lock.tryToAcquireOrRenewLock {
       getEmailsList().map { result =>
         result
@@ -135,7 +135,7 @@ trait SchedulerService extends SimpleMongoConnection  {
 
       var emailsToSend = emailsList.get
 
-      Akka.system.scheduler.schedule(10 milliseconds, 10 seconds) {
+      Akka.system.scheduler.schedule(ApplicationConfig.mailSendingDelayMS milliseconds, ApplicationConfig.mailSendingIntervalSec seconds) {
         if (emailsToSend.nonEmpty) {
           val email = emailsToSend.head
           emailService.send(ApplicationConfig.mailTemplate, email, "scheduler").map { result =>

@@ -25,30 +25,34 @@ object ApplicationConfig extends ServicesConfig {
 
   private def getListString(key: String, delimiter: String): List[String] = getString(key).split(delimiter).toList
 
-  lazy val ccEmailCollection: String = getString("settings.collections.cc")
-  
-  lazy val csiRegistrationCollection: String = getString("settings.collections.csi")
-  
-  lazy val mongoConnectionUri: String = getString(s"$env.mongodb.uri")
-
   def getEventType(eventType: String): Try[String] = Try(getString(eventType.toLowerCase))
 
-  lazy val mailEnabled: Boolean = getBoolean("mail.enabled")
+  val ccEmailCollection: String = getString("settings.collections.cc")
 
-  lazy val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
+  val csiRegistrationCollection: String = getString("settings.collections.csi")
 
-  lazy val mailStartDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.start.date"), mailDateFormatter))
+  val mongoConnectionUri: String = getString(s"$env.mongodb.uri")
 
-  lazy val mailEndDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.end.date"), mailDateFormatter))
+  val mailEnabled: Boolean = getBoolean("mail.enabled")
 
-  lazy val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
+  val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
 
-  lazy val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
-  lazy val mailExcludeDelivered: Boolean = getBoolean("mail.exclude.delivered.emails")
-  lazy val mailExcludeBounce: Boolean = getBoolean("mail.exclude.bounce.emails")
+  val mailStartDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.start.date"), mailDateFormatter))
 
-  lazy val mailSource: List[String] = getListString("mail.source", ",")
+  val mailEndDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.end.date"), mailDateFormatter))
 
-  lazy val mailTemplate: String = getString("mail.template")
+  val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
+
+  val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
+  val mailExcludeDelivered: Boolean = getBoolean("mail.exclude.delivered.emails")
+  val mailExcludeBounce: Boolean = getBoolean("mail.exclude.bounce.emails")
+
+  val mailSource: List[String] = getListString("mail.source", ",")
+
+  val mailTemplate: String = getString("mail.template")
+
+  val mailSendingDelayMS: Int = getInt("mail.sending.delay.ms")
+  val mailSendingIntervalSec: Int = getInt("mail.sending.interval.s")
+  val mailLocking: Int = getInt("mail.locking.interval")
 
 }
