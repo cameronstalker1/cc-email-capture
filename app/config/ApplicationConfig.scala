@@ -16,18 +16,43 @@
 
 package config
 
-import play.api.Play._
+import org.joda.time.LocalDate
+import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
 import uk.gov.hmrc.play.config.ServicesConfig
 import scala.util.Try
 
 object ApplicationConfig extends ServicesConfig {
 
-  private def loadConfig(key: String) = configuration.getString(key).getOrElse(throw new Exception(s"Missing key: $key"))
+  private def getListString(key: String, delimiter: String): List[String] = getString(key).split(delimiter).toList
 
-  lazy val registrationCollection = Try(loadConfig("settings.registrationCollection")).getOrElse("")
+  def getEventType(eventType: String): Try[String] = Try(getString(eventType.toLowerCase))
 
-  lazy val mongoConnectionUri = Try(loadConfig(s"$env.mongodb.uri")).getOrElse("")
+  val ccEmailCollection: String = getString("settings.collections.cc")
 
-  def getEventType(eventType: String): Try[String] = Try(loadConfig(eventType.toLowerCase))
+  val csiRegistrationCollection: String = getString("settings.collections.csi")
+
+  val mongoConnectionUri: String = getString(s"$env.mongodb.uri")
+
+  val mailEnabled: Boolean = getBoolean("mail.enabled")
+
+  val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
+
+  val mailStartDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.start.date"), mailDateFormatter))
+
+  val mailEndDate: Try[LocalDate] = Try(LocalDate.parse(getString("mail.end.date"), mailDateFormatter))
+
+  val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
+
+  val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
+  val mailExcludeDelivered: Boolean = getBoolean("mail.exclude.delivered.emails")
+  val mailExcludeBounce: Boolean = getBoolean("mail.exclude.bounce.emails")
+
+  def mailSource: List[String] = getListString("mail.source", ",")
+
+  val mailTemplate: String = getString("mail.template")
+
+  val mailSendingDelayMS: Int = getInt("mail.sending.delay.ms")
+  val mailSendingIntervalSec: Int = getInt("mail.sending.interval.s")
+  val mailLocking: Int = getInt("mail.locking.interval")
 
 }

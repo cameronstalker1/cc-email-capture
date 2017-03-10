@@ -16,11 +16,7 @@
 
 package models
 
-import org.joda.time.{LocalDateTime, LocalDate}
-import play.api.libs.json.Json
+import org.joda.time.Duration
+import uk.gov.hmrc.lock.{ExclusiveTimePeriodLock, LockRepository}
 
-case class Message (emailAddress: String, dob: Option[List[LocalDate]] = None, england: Boolean, sent: Option[List[String]] = None)
-
-object Message {
-  implicit val formats = Json.format[Message]
-}
+final case class EmailLock(lockId: String, holdLockFor: Duration, repo: LockRepository) extends ExclusiveTimePeriodLock

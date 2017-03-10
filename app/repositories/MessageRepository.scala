@@ -16,7 +16,9 @@
 
 package repositories
 
-import models.Message
+import org.joda.time.LocalDateTime
+import config.ApplicationConfig
+import models.{Registration, Message}
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
@@ -59,6 +61,121 @@ class MessageRepository()(implicit mongo: () => DB)
           "$unset" -> Json.obj("dob" -> ""))
 
     }
+  }
+
+  def markEmailAsSent(email: String): Future[Boolean] = {
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    val update = Json.obj(
+      "$push" -> Json.obj(
+        "sent" -> LocalDateTime.now().toString
+      )
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
+  def emailStatus(email: String, statuses: List[String]) : Future[Boolean] = {
+    val localDateTime = LocalDateTime.now().toString
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    var statusesList = Json.obj()
+    for(status <- statuses) {
+      statusesList = statusesList ++ Json.obj(
+        status -> localDateTime
+      )
+    }
+    val update = Json.obj(
+      "$push" -> statusesList
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
+  def getEmails(): Future[List[String]] = {
+    val countries = if(ApplicationConfig.mailCountries.isSuccess &&
+      !(ApplicationConfig.mailCountries.get.contains("england") && ApplicationConfig.mailCountries.get.exists(_ != "england"))
+    ) {
+      Json.obj(
+        "england" -> ApplicationConfig.mailCountries.get.contains("england")
+      )
+    }
+    else {
+      Json.obj()
+    }
+    val startPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$gte" -> ApplicationConfig.mailStartDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val endPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$lte" -> ApplicationConfig.mailEndDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeSentEmails = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "sent" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered) {
+      val deliveredStatuses = List("delivered", "sent", "opened")
+      Json.obj(
+        "$or" -> {
+          for (status <- deliveredStatuses) yield Json.obj(
+            status -> Json.obj(
+              "$exists" -> false
+            )
+          )
+        }
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeBounce = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "permanentbounce" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce).cursor[Message]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
   }
 
 }

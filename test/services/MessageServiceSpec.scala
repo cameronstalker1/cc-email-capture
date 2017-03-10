@@ -16,6 +16,7 @@
 
 package services
 
+import controllers.FakeCCEmailApplication
 import models.Message
 import org.scalatest.mock.MockitoSugar
 import repositories.MessageRepository
@@ -23,7 +24,7 @@ import org.mockito.Mockito._
 import uk.gov.hmrc.play.test.UnitSpec
 import scala.concurrent._
 
-class MessageServiceSpec extends UnitSpec  with MockitoSugar {
+class MessageServiceSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication {
 
   "Message Service" should {
     "store a message containing email if the email doesn't exist in the database" in {

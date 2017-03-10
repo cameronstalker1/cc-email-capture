@@ -41,6 +41,7 @@ private object AppDependencies {
   private val mockitoVersion = "1.9.0"
   private val pegDownVersion = "1.6.0"
   private val reactiveMongoTestVersion = "2.0.0"
+  private val mongoLock = "4.0.0"
 
   val compile = Seq(
     ws,
@@ -51,7 +52,8 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "play-health" % playHealthVersion,
     "uk.gov.hmrc" %% "play-config" % playConfigVersion,
     "uk.gov.hmrc" %% "emailaddress" % emailAddressVersion,
-    "uk.gov.hmrc" %% "json-encryption" % jsonEncryptionVersion
+    "uk.gov.hmrc" %% "json-encryption" % jsonEncryptionVersion,
+    "uk.gov.hmrc" %% "mongo-lock" % mongoLock
   )
 
   trait TestDependencies {

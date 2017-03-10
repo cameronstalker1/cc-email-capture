@@ -16,6 +16,7 @@
 
 package services
 
+import controllers.FakeCCEmailApplication
 import fixtures.RegistrationData
 import models.SendEmailRequest
 import org.scalatest.mock.MockitoSugar
@@ -27,9 +28,7 @@ import org.mockito.Matchers._
 import play.api.test.Helpers._
 import scala.concurrent.Future
 
-class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData {
-
-  implicit val hc: HeaderCarrier = new HeaderCarrier()
+class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData with FakeCCEmailApplication {
 
   "Calling Send" should {
     val mockPOST = mock[HttpPost]
@@ -53,7 +52,7 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
             mockResult
           )
 
-          val result = await(emailService.send("templateID", registration.emailAddress, "host", "childcare-interest"))
+          val result = await(emailService.send("templateID", registration.emailAddress, "childcare-interest"))
           result.status shouldBe expectedStatus
         }
     }
@@ -64,11 +63,11 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
       override val httpGetRequest: HttpGet = mock[HttpGet]
       override val httpPostRequest: HttpPost = mock[HttpPost]
       override val serviceUrl: String = "service-url"
-      override def send(templateId: String, email: String, host: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.successful(HttpResponse(OK))
+      override def send(templateId: String, email: String, source: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = Future.successful(HttpResponse(OK))
     }
 
     "return the result of send" in{
-      val result = emailService.sendRegistrationEmail(registration, "host")
+      val result = emailService.sendRegistrationEmail(registration)
       result.status shouldBe OK
     }
 

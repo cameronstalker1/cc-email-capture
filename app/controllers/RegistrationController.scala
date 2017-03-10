@@ -41,7 +41,7 @@ trait RegistrationController extends BaseController with ServicesConfig {
   def register : Action[JsObject] = Action.async(parse.json[JsObject]) {
     implicit request =>
       request.body.asOpt[Registration] match {
-        case Some(registration) => processRegistration(registration, request.host)
+        case Some(registration) => processRegistration(registration)
         case _ => {
           Logger.warn("\n ========= SubscribeController: Empty/Invalid JSON received ========= \n")
           Future.successful(BadRequest("Empty/Invalid JSON received"))
@@ -49,10 +49,10 @@ trait RegistrationController extends BaseController with ServicesConfig {
       }
   }
 
-  def processRegistration(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
+  def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = {
     emailService.validEmail(registration.emailAddress).flatMap { validationResult =>
       validationResult.status match {
-        case OK => saveAndSendEmail(registration, host)
+        case OK => saveAndSendEmail(registration)
         case _ => {
           Logger.warn(s"\n ========= SubscribeController: Checking email return status: ${validationResult.status} ========= \n")
           Future(NotFound(s"Not a valid email: ${validationResult.status}"))
@@ -66,14 +66,14 @@ trait RegistrationController extends BaseController with ServicesConfig {
     }
   }
 
-  def saveAndSendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
+  def saveAndSendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = {
     registrationService.insertOrUpdate(registration).flatMap {
       case true => {
         registration.dob.map { dob =>
           auditService.sendDOB(Map("dob" -> dob.toString))
         }
         auditEmailLocationCount()
-        sendEmail(registration, host)
+        sendEmail(registration)
       }
       case false => {
         Logger.warn(s"******** SubscribeController.saveAndSendEmail: Insert/Update failed ******")
@@ -82,8 +82,8 @@ trait RegistrationController extends BaseController with ServicesConfig {
     }
   }
 
-  def sendEmail(registration: Registration, host: String)(implicit hc: HeaderCarrier): Future[Result] = {
-    emailService.sendRegistrationEmail(registration, host).map { result =>
+  def sendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = {
+    emailService.sendRegistrationEmail(registration).map { result =>
       result.status match {
         case ACCEPTED =>
           auditService.sendEmailSuccessEventForInterest(registration.toString)

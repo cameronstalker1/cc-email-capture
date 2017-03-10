@@ -16,6 +16,8 @@
 
 package repositories
 
+import org.joda.time.LocalDateTime
+import config.ApplicationConfig
 import config.ApplicationConfig._
 import models.Registration
 import play.api.libs.functional.syntax._
@@ -25,15 +27,11 @@ import reactivemongo.bson.{BSONDocument, BSONObjectID, _}
 import reactivemongo.core.commands.{Aggregate, GroupField, SumValue}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
-
-
 class RegistartionRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[Registration, BSONObjectID](registrationCollection, mongo, Registration.registrationFormat,
+  extends ReactiveRepository[Registration, BSONObjectID](csiRegistrationCollection, mongo, Registration.registrationFormat,
     ReactiveMongoFormats.objectIdFormats)  {
 
   def inserOrUpdate(registration: Registration): Future[Boolean] = {
@@ -70,6 +68,122 @@ class RegistartionRepository()(implicit mongo: () => DB)
       ReadPreference.secondaryPreferred
     ).map(locationMap => statusZeroCounts ++ locationMap.toSeq.map(Json.toJson(_).as(processingLocationMap)))
 
+  }
+
+  def emailStatus(email: String, statuses: List[String]) : Future[Boolean] = {
+    val localDateTime = LocalDateTime.now().toString
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    var statusesList = Json.obj()
+    for(status <- statuses) {
+      statusesList = statusesList ++ Json.obj(
+        status -> localDateTime
+      )
+    }
+    val update = Json.obj(
+      "$push" -> statusesList
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
+  def markEmailAsSent(email: String): Future[Boolean] = {
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    val update = Json.obj(
+      "$push" -> Json.obj(
+        "sent" -> LocalDateTime.now().toString
+      )
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
+  def getEmails(): Future[List[String]] = {
+    val countries = if(ApplicationConfig.mailCountries.isSuccess) {
+      Json.obj(
+        "location" -> Json.obj(
+          "$in" -> ApplicationConfig.mailCountries.get
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val startPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$gte" -> ApplicationConfig.mailStartDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val endPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$elemMatch" -> Json.obj(
+            "$lte" -> ApplicationConfig.mailEndDate.get
+          )
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeSentEmails = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "sent" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered) {
+      val deliveredStatuses = List("delivered", "sent", "opened")
+      Json.obj(
+        "$or" -> {
+          for (status <- deliveredStatuses) yield Json.obj(
+            status -> Json.obj(
+              "$exists" -> false
+            )
+          )
+        }
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeBounce = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "permanentbounce" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce).cursor[Registration]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
   }
 
 }

@@ -16,10 +16,10 @@
 
 package models
 
-import org.joda.time.LocalDate
+import org.joda.time.{LocalDateTime, LocalDate}
 import play.api.libs.json.Json
 
-case class Registration (location: String, dob: List[LocalDate], emailAddress: String)
+case class Registration (location: String, dob: List[LocalDate], emailAddress: String, sent: Option[List[String]] = None)
 
 object Registration {
   implicit val registrationFormat = Json.format[Registration]
