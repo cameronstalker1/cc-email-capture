@@ -44,7 +44,7 @@ trait EmailService extends ServicesConfig {
   import MdcLoggingExecutionContext._
 
   def validEmail(email: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpGetRequest.GET[IsValidEmail](serviceUrl + (s"/validate-email-address?email=$email")).map {
+    httpGetRequest.GET[IsValidEmail](serviceUrl + s"/hmrc/validate-email-address?email=$email").map {
       result =>
         result.valid match {
           case true => HttpResponse.apply(OK)
@@ -89,7 +89,7 @@ trait EmailService extends ServicesConfig {
       eventUrl = eventUrl
     )
 
-    httpPostRequest.POST[SendEmailRequest, HttpResponse](serviceUrl + "/send-templated-email", emailData).map {
+    httpPostRequest.POST[SendEmailRequest, HttpResponse](serviceUrl + "/hmrc/email", emailData).map {
       result =>
         result
     } recover {
