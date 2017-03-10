@@ -28,7 +28,7 @@ import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import reactivemongo.core.errors.ReactiveMongoException
-import services.{EmailService, AuditEvents, MessageService}
+import services.{SchedulerService, EmailService, AuditEvents, MessageService}
 import uk.gov.hmrc.play.http.{InternalServerException, HttpResponse}
 import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
 import org.mockito.Matchers.{eq => mockEq, _}
@@ -43,11 +43,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     val mockMessageService = mock[MessageService]
     val mockAuditService = mock[AuditEvents]
     val mockEmailService = mock[EmailService]
+    val mockSchedulerService = mock[SchedulerService]
 
     val mockController = new EmailCaptureController {
       override val messageService = mockMessageService
       override val auditService = mockAuditService
       override val emailService = mockEmailService
+      override val schedulerService = mockSchedulerService
     }
   }
   val fakeResponseInternalError = new HttpResponse {  override def status: scala.Int = Status.INTERNAL_SERVER_ERROR}
@@ -290,6 +292,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     "receive event - return 200 status when a valid json is received with eventType as Not present in call back list" in new Setup {
       val callBackResponseJson = """{"events": [ {"event": "Bounce", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
+
+      status(result) shouldBe 200
+    }
+
+    "receive event - return 200 status when a valid json is received for scheduled emails" in new Setup {
+      val callBackResponseJson = """{"events": [ {"event": "Bounce", "detected": "2015-07-02T08:26:39.035Z" }]}"""
+      val result = mockController.receiveEvent("test@test.com", "scheduler").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
       status(result) shouldBe 200
     }

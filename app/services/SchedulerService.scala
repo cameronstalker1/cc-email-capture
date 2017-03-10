@@ -49,15 +49,35 @@ trait SchedulerService extends SimpleMongoConnection  {
     if (ApplicationConfig.mailSource == List("childcare-schemes-interest-frontend")) {
       registartionRepository.getEmails().map { csiResult =>
         csiResult
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't get csi emails: ${ex.getMessage}")
+          List()
+        }
       }
     } else if (ApplicationConfig.mailSource == List("cc-frontend")) {
       messageRepository.getEmails().map { ccResult =>
         ccResult
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't get cc emails: ${ex.getMessage}")
+          List()
+        }
       }
     } else {
       registartionRepository.getEmails().flatMap { csiResult =>
         messageRepository.getEmails().map { ccResult =>
           (csiResult ++ ccResult).distinct
+        }.recover {
+          case ex: Exception => {
+            Logger.warn(s"Can't get cc emails: ${ex.getMessage}")
+            List()
+          }
+        }
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't get csi emails: ${ex.getMessage}")
+          List()
         }
       }
     }
@@ -66,21 +86,49 @@ trait SchedulerService extends SimpleMongoConnection  {
   def lockEmails(): Future[Option[List[String]]] = {
     val lock = EmailLock("emailLock", new Duration(60000), lockRepository)
     lock.tryToAcquireOrRenewLock {
-      getEmailsList().map(result => result)
+      getEmailsList().map { result =>
+        result
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't lock emails: ${ex.getMessage}")
+          List()
+        }
+      }
     }
   }
 
   def getEmails() = {
     lockEmails().map { emailsList =>
       sendEmail(emailsList)
+    }.recover {
+      case ex: Exception => {
+        Logger.warn(s"Can't lock emails: ${ex.getMessage}")
+      }
+    }
+  }
+
+  def mailDelivered(email: String, status: List[String]) = {
+    if(ApplicationConfig.mailSource.contains("cc-frontend")) {
+      messageRepository.emailStatus(email, status).map {
+        result => result
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't update cc email: ${ex.getMessage}")
+        }
+      }
+    }
+    if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+      registartionRepository.emailStatus(email, status).map {
+        result => result
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't update csi email: ${ex.getMessage}")
+        }
+      }
     }
   }
 
   def sendEmail(emailsList: Option[List[String]]) = {
-    // Send email
-
-    println("------------- emails: " + emailsList)
-
     if (emailsList.isDefined && emailsList.get.nonEmpty) {
 
       implicit val hc: HeaderCarrier = new HeaderCarrier()
@@ -90,18 +138,25 @@ trait SchedulerService extends SimpleMongoConnection  {
       Akka.system.scheduler.schedule(10 milliseconds, 10 seconds) {
         if (emailsToSend.nonEmpty) {
           val email = emailsToSend.head
-          println("---------- send to: " + email)
-          emailService.send(ApplicationConfig.mailTemplate, email, "").map { result =>
+          emailService.send(ApplicationConfig.mailTemplate, email, "scheduler").map { result =>
             emailsToSend = emailsToSend.tail
             if(ApplicationConfig.mailSource.contains("cc-frontend")) {
-              messageRepository.markEmailAsSent(email)
+              messageRepository.markEmailAsSent(email).recover {
+                case ex: Exception => {
+                  Logger.warn(s"Can't update cc emails: ${ex.getMessage}")
+                }
+              }
             }
             if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
-              registartionRepository.markEmailAsSent(email)
+              registartionRepository.markEmailAsSent(email).recover {
+                case ex: Exception => {
+                  Logger.warn(s"Can't update csi emails: ${ex.getMessage}")
+                }
+              }
             }
-          }. recover {
+          }.recover {
             case ex: Exception => {
-              Logger.error("Can't send email")
+              Logger.warn(s"Can't send email: ${ex.getMessage}")
             }
           }
         }

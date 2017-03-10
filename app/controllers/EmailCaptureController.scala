@@ -25,7 +25,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import reactivemongo.core.errors.ReactiveMongoException
-import services.{AuditEvents, EmailService, MessageService}
+import services.{SchedulerService, AuditEvents, EmailService, MessageService}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -39,12 +39,14 @@ object EmailCaptureController extends EmailCaptureController {
   override val messageService = MessageService
   override val emailService = EmailService
   override val auditService = AuditEvents
+  override val schedulerService = SchedulerService
 }
 
 trait EmailCaptureController extends BaseController with ServicesConfig {
   val messageService: MessageService
   val auditService: AuditEvents
   val emailService: EmailService
+  val schedulerService: SchedulerService
 
   def captureEmail : Action[JsValue]  = Action.async(parse.json) { implicit request =>
     val registrationData = request.body.asOpt[Message]
@@ -125,14 +127,19 @@ trait EmailCaptureController extends BaseController with ServicesConfig {
       def response(requestJson: JsValue) = {
         Try(requestJson.as[CallBackEventList](CallBackEventList.reader).callBackEvents) match {
           case Success(callbackEventList) =>
-            callbackEventList.foreach {
-              event =>
-                ApplicationConfig.getEventType(event.eventType) match {
-                  case Success(_) =>
-                    auditService.emailStatusEventForType(emailAddress + ":::" + event.eventType, source)
-                  case _ =>
-                    Logger.warn("No need to audit the Event Received: " + event.eventType)
-                }
+            if(source == "scheduler") {
+              schedulerService.mailDelivered(emailAddress, callbackEventList.map(_.eventType))
+            }
+            else {
+              callbackEventList.foreach {
+                event =>
+                  ApplicationConfig.getEventType(event.eventType) match {
+                    case Success(_) =>
+                      auditService.emailStatusEventForType(emailAddress + ":::" + event.eventType, source)
+                    case _ =>
+                      Logger.warn("No need to audit the Event Received: " + event.eventType)
+                  }
+              }
             }
             Future.successful(Ok)
           case Failure(e) =>

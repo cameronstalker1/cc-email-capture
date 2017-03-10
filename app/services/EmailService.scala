@@ -73,17 +73,13 @@ trait EmailService extends ServicesConfig {
     send("childcare_schemes_interest_email", registrationData.emailAddress, "childcare-interest")
   }
 
+
   def send(templateId: String, email: String, source: String)(implicit hc: HeaderCarrier):
   Future[HttpResponse] = {
-println("---------------------- "  + baseUrl("cc-email-capture"))
+
     val toList: List[EmailAddress] = List(EmailAddress(email))
     val params: Map[String, String] = Map("emailAddress" -> email)
-    val eventUrl = if(source.nonEmpty) {
-      Some(baseUrl("cc-email-capture") + controllers.routes.EmailCaptureController.receiveEvent(email, source).url)
-    }
-    else {
-      None
-    }
+    val eventUrl = Some(baseUrl("cc-email-capture") + controllers.routes.EmailCaptureController.receiveEvent(email, source).url)
 
     val emailData: SendEmailRequest = SendEmailRequest(
       to = toList,

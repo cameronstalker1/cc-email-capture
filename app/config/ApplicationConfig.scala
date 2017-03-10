@@ -44,6 +44,8 @@ object ApplicationConfig extends ServicesConfig {
   lazy val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
 
   lazy val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
+  lazy val mailExcludeDelivered: Boolean = getBoolean("mail.exclude.delivered.emails")
+  lazy val mailExcludeBounce: Boolean = getBoolean("mail.exclude.bounce.emails")
 
   lazy val mailSource: List[String] = getListString("mail.source", ",")
 

@@ -77,6 +77,25 @@ class MessageRepository()(implicit mongo: () => DB)
     }
   }
 
+  def emailStatus(email: String, statuses: List[String]) : Future[Boolean] = {
+    val localDateTime = LocalDateTime.now().toString
+    val selector = Json.obj(
+      "emailAddress" -> email
+    )
+    var statusesList = Json.obj()
+    for(status <- statuses) {
+      statusesList = statusesList ++ Json.obj(
+        status -> localDateTime
+      )
+    }
+    val update = Json.obj(
+      "$push" -> statusesList
+    )
+    collection.update(selector, update).map { result =>
+      result.ok
+    }
+  }
+
   def getEmails(): Future[List[String]] = {
     val countries = if(ApplicationConfig.mailCountries.isSuccess &&
       !(ApplicationConfig.mailCountries.get.contains("england") && ApplicationConfig.mailCountries.get.exists(_ != "england"))
@@ -124,7 +143,35 @@ class MessageRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails).cursor[Message]().collect[List]().map(
+
+    val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered) {
+      val deliveredStatuses = List("delivered", "sent", "opened")
+      Json.obj(
+        "$or" -> {
+          for (status <- deliveredStatuses) yield Json.obj(
+            status -> Json.obj(
+              "$exists" -> false
+            )
+          )
+        }
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    val excludeBounce = if(ApplicationConfig.mailExcludeSent) {
+      Json.obj(
+        "permanentbounce" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+
+    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce).cursor[Message]().collect[List]().map(
       _.map(
         _.emailAddress
       )
