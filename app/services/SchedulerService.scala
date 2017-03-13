@@ -107,24 +107,48 @@ trait SchedulerService extends SimpleMongoConnection  {
     }
   }
 
-  def mailDelivered(email: String, status: List[String]) = {
-    if(ApplicationConfig.mailSource.contains("cc-frontend")) {
+  def mailDelivered(email: String, status: List[String]): Future[Boolean] = {
+    if(ApplicationConfig.mailSource.contains("cc-frontend") && ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+      messageRepository.emailStatus(email, status).flatMap {
+        result =>
+          registartionRepository.emailStatus(email, status).map {
+            result => result
+          }.recover {
+            case ex: Exception => {
+              Logger.warn(s"Can't update csi email: ${ex.getMessage}")
+              false
+            }
+          }
+      }.recover {
+        case ex: Exception => {
+          Logger.warn(s"Can't update cc email: ${ex.getMessage}")
+          false
+        }
+      }
+    }
+    else if(ApplicationConfig.mailSource.contains("cc-frontend")) {
       messageRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
           Logger.warn(s"Can't update cc email: ${ex.getMessage}")
+          false
         }
       }
     }
-    if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+    else if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
       registartionRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
           Logger.warn(s"Can't update csi email: ${ex.getMessage}")
+          false
         }
       }
+    }
+    else {
+      Logger.warn(s"invalid configurion")
+      Future (false)
     }
   }
 

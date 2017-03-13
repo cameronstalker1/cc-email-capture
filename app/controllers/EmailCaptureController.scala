@@ -16,12 +16,13 @@
 
 package controllers
 
+import javax.inject.{Inject, Singleton}
+
 import config.ApplicationConfig
 import models.{CallBackEventList, EmailResponse, Message}
 import play.api.Logger
 import play.api.Play._
-import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
+import play.api.i18n.{Messages, I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import reactivemongo.core.errors.ReactiveMongoException
@@ -35,18 +36,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-object EmailCaptureController extends EmailCaptureController {
-  override val messageService = MessageService
-  override val emailService = EmailService
-  override val auditService = AuditEvents
-  override val schedulerService = SchedulerService
-}
 
-trait EmailCaptureController extends BaseController with ServicesConfig {
-  val messageService: MessageService
-  val auditService: AuditEvents
-  val emailService: EmailService
-  val schedulerService: SchedulerService
+
+@Singleton
+class EmailCaptureController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {
+  val messageService = MessageService
+  val auditService = AuditEvents
+  val emailService = EmailService
+  val schedulerService = SchedulerService
 
   def captureEmail : Action[JsValue]  = Action.async(parse.json) { implicit request =>
     val registrationData = request.body.asOpt[Message]
