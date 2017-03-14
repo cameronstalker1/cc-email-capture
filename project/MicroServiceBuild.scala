@@ -26,22 +26,22 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val microServiceBootstrapVersion = "5.8.0"
-  private val playHealthVersion = "2.0.0"
+  private val microServiceBootstrapVersion = "5.13.0"
+  private val playHealthVersion = "2.1.0"
   private val logbackJsonLoggerVersion = "3.1.0"
-  private val playReactiveMongoVersion = "5.1.0"
+  private val playReactiveMongoVersion = "5.2.0"
   private val emailAddressVersion = "2.0.0"
-  private val playConfigVersion = "3.0.0"
-  private val playAuthorisationVersion = "4.2.0"
-  private val jsonEncryptionVersion = "3.1.0"
+  private val playConfigVersion = "4.3.0"
+  private val playAuthorisationVersion = "4.3.0"
+  private val jsonEncryptionVersion = "3.2.0"
 
-  private val hmrcTestVersion = "2.1.0"
+  private val hmrcTestVersion = "2.3.0"
   private val scalaTestVersion = "2.2.6"
   private val scalaTestPlusVersion = "1.5.1"
   private val mockitoVersion = "1.9.0"
   private val pegDownVersion = "1.6.0"
   private val reactiveMongoTestVersion = "2.0.0"
-  private val mongoLock = "4.0.0"
+  private val mongoLock = "4.1.0"
 
   val compile = Seq(
     ws,
