@@ -21,22 +21,19 @@ import javax.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models.{CallBackEventList, EmailResponse, Message}
 import play.api.Logger
-import play.api.Play._
-import play.api.i18n.{Messages, I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import reactivemongo.core.errors.ReactiveMongoException
-import services.{SchedulerService, AuditEvents, EmailService, MessageService}
+import services.{AuditEvents, EmailService, MessageService, SchedulerService}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import utils.JsonConstructor
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-
-
+import play.api.i18n.Messages.Implicits.applicationMessages
+import utils.JsonConstructor
 
 @Singleton
 class EmailCaptureController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {
@@ -114,7 +111,7 @@ class EmailCaptureController @Inject()(val messagesApi: MessagesApi) extends Bas
         responseFun.apply(js.json)
       case _ =>
         Logger.warn("Invalid request body type passed to microservice - just JSON accepted")
-        Future.successful(BadRequest(JsonConstructor.constructErrorJson(Messages("content_type.invalid"))))
+        Future.successful(BadRequest(new JsonConstructor(messagesApi).constructErrorJson(Messages("content_type.invalid"))))
     }
   }
 
@@ -141,7 +138,7 @@ class EmailCaptureController @Inject()(val messagesApi: MessagesApi) extends Bas
             Future.successful(Ok)
           case Failure(e) =>
             Logger.warn("receiveEvent: Other Internal Server Error")
-            Future.successful(BadGateway(JsonConstructor.constructErrorResponse(EmailResponse
+            Future.successful(BadGateway(new JsonConstructor(messagesApi).constructErrorResponse(EmailResponse
               (BAD_GATEWAY, Some(e.getMessage)))))
         }
       }
