@@ -16,28 +16,28 @@
 
 package utils
 
-import com.kenshoo.play.metrics.PlayModule
 import controllers.FakeCCEmailApplication
 import models.EmailResponse
 import org.scalatest.mock.MockitoSugar
-import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
+import uk.gov.hmrc.play.test.UnitSpec
+import play.api.i18n.Messages.Implicits.applicationMessagesApi
 
 class JsonConstructorSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication {
 
   "construct error response when response has some error" in {
     val response = EmailResponse(500, Some("error occured"))
-    val error = JsonConstructor.constructErrorResponse(response)
+    val error = new JsonConstructor(applicationMessagesApi).constructErrorResponse(response)
     error.toString shouldBe  "{\"reason\":\"error occured\"}"
   }
 
   "construct error response when response has no error" in {
     val response = EmailResponse(500, None)
-    val error = JsonConstructor.constructErrorResponse(response)
+    val error = new JsonConstructor(applicationMessagesApi).constructErrorResponse(response)
     error.toString shouldBe  "{\"reason\":\"Unknown reason. Dependent system did not provide failure reason\"}"
   }
 
   "construct error using a string" in {
-    val error = JsonConstructor.constructErrorJson("Error")
+    val error = new JsonConstructor(applicationMessagesApi).constructErrorJson("Error")
     error.toString shouldBe  "{\"reason\":\"Error\"}"
   }
 

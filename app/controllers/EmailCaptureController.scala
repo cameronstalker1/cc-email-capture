@@ -32,15 +32,14 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import play.api.i18n.Messages.Implicits.applicationMessages
 import utils.JsonConstructor
 
 @Singleton
 class EmailCaptureController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {
-  val messageService = MessageService
-  val auditService = AuditEvents
-  val emailService = EmailService
-  val schedulerService = SchedulerService
+  val messageService: MessageService = MessageService
+  val auditService: AuditEvents = AuditEvents
+  val emailService: EmailService = EmailService
+  val schedulerService: SchedulerService = SchedulerService
 
   def captureEmail : Action[JsValue]  = Action.async(parse.json) { implicit request =>
     val registrationData = request.body.asOpt[Message]
