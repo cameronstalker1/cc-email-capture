@@ -16,20 +16,19 @@
 
 package utils
 
+import javax.inject.{Inject, Singleton}
+
 import models.EmailResponse
-import play.api.Play._
-import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsValue, Json}
 
-object JsonConstructor {
+@Singleton
+class JsonConstructor @Inject()(val messagesApi: MessagesApi) extends I18nSupport {
 
   def constructErrorResponse(response: EmailResponse): JsValue = {
     response.errors match {
-      case Some(errors) if errors.nonEmpty =>
-        constructErrorJson(errors)
-      case _ =>
-        constructErrorJson(Messages("unknown.failure"))
+      case Some(errors) if errors.nonEmpty => constructErrorJson(errors)
+      case _ => constructErrorJson(Messages("unknown.failure"))
     }
   }
 

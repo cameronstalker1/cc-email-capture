@@ -30,7 +30,7 @@ private object AppDependencies {
   private val playHealthVersion = "2.1.0"
   private val logbackJsonLoggerVersion = "3.1.0"
   private val playReactiveMongoVersion = "5.2.0"
-  private val emailAddressVersion = "2.0.0"
+  private val emailAddressVersion = "2.1.0"
   private val playConfigVersion = "4.3.0"
   private val playAuthorisationVersion = "4.3.0"
   private val jsonEncryptionVersion = "3.2.0"
