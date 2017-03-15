@@ -43,6 +43,8 @@ object ApplicationConfig extends ServicesConfig {
 
   val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
 
+  val mailDeliveredStatuses: Try[List[String]] = Try(getListString("mail.delivered.statuses", ","))
+
   val mailExcludeSent: Boolean = getString("mail.exclude.sent.emails").toBoolean
   val mailExcludeDelivered: Boolean = getString("mail.exclude.delivered.emails").toBoolean
   val mailExcludeBounce: Boolean = getString("mail.exclude.bounce.emails").toBoolean

@@ -120,7 +120,7 @@ class MessageRepository()(implicit mongo: () => DB)
       Json.obj()
     }
 
-    val endPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+    val endPeriod = if(ApplicationConfig.mailEndDate.isSuccess) {
       Json.obj(
         "dob" -> Json.obj(
           "$elemMatch" -> Json.obj(
@@ -144,8 +144,8 @@ class MessageRepository()(implicit mongo: () => DB)
       Json.obj()
     }
 
-    val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered) {
-      val deliveredStatuses = List("delivered", "sent", "opened")
+    val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered && ApplicationConfig.mailDeliveredStatuses.isSuccess) {
+      val deliveredStatuses = ApplicationConfig.mailDeliveredStatuses.get
       Json.obj(
         "$or" -> {
           for (status <- deliveredStatuses) yield Json.obj(
@@ -160,7 +160,7 @@ class MessageRepository()(implicit mongo: () => DB)
       Json.obj()
     }
 
-    val excludeBounce = if(ApplicationConfig.mailExcludeSent) {
+    val excludeBounce = if(ApplicationConfig.mailExcludeBounce) {
       Json.obj(
         "permanentbounce" -> Json.obj(
           "$exists" -> false
