@@ -33,7 +33,7 @@ object ApplicationConfig extends ServicesConfig {
 
   val mongoConnectionUri: String = getString(s"$env.mongodb.uri")
 
-  val mailEnabled: Boolean = getBoolean("mail.enabled")
+  val mailEnabled: Boolean = getString("mail.enabled").toBoolean
 
   val mailDateFormatter: DateTimeFormatter = DateTimeFormat.forPattern(getString("mail.date.format"))
 
@@ -43,16 +43,16 @@ object ApplicationConfig extends ServicesConfig {
 
   val mailCountries: Try[List[String]] = Try(getListString("mail.countries", ","))
 
-  val mailExcludeSent: Boolean = getBoolean("mail.exclude.sent.emails")
-  val mailExcludeDelivered: Boolean = getBoolean("mail.exclude.delivered.emails")
-  val mailExcludeBounce: Boolean = getBoolean("mail.exclude.bounce.emails")
+  val mailExcludeSent: Boolean = getString("mail.exclude.sent.emails").toBoolean
+  val mailExcludeDelivered: Boolean = getString("mail.exclude.delivered.emails").toBoolean
+  val mailExcludeBounce: Boolean = getString("mail.exclude.bounce.emails").toBoolean
 
   def mailSource: List[String] = getListString("mail.source", ",")
 
   val mailTemplate: String = getString("mail.template")
 
-  val mailSendingDelayMS: Int = getInt("mail.sending.delay.ms")
-  val mailSendingIntervalSec: Int = getInt("mail.sending.interval.s")
-  val mailLocking: Int = getInt("mail.locking.interval")
+  val mailSendingDelayMS: Int = getString("mail.sending.delay.ms").toInt
+  val mailSendingIntervalSec: Int = getString("mail.sending.interval.s").toInt
+  val mailLocking: Int = getString("mail.locking.interval").toInt
 
 }

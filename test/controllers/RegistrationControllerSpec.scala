@@ -16,21 +16,19 @@
 
 package controllers
 
-import com.kenshoo.play.metrics.PlayModule
 import fixtures.RegistrationData
 import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
-import play.api.Play
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import services.{AuditEvents, RegistartionService, EmailService}
 import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
+import uk.gov.hmrc.play.test.UnitSpec
 import play.api.test.Helpers._
 import scala.concurrent.Future
-import Play.current
+import play.api.i18n.Messages.Implicits._
 
 class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with FakeCCEmailApplication {
 
@@ -39,27 +37,28 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   "verify that controller is set up correctly" should {
 
     "use rhe right EmailService" in {
-      RegistrationController.emailService shouldBe EmailService
+      new RegistrationController(applicationMessagesApi).emailService shouldBe EmailService
     }
 
     "use rhe right RegistrationService" in {
-      RegistrationController.registrationService shouldBe RegistartionService
+      new RegistrationController(applicationMessagesApi).registrationService shouldBe RegistartionService
     }
 
   }
 
   "subscribe" should {
 
-    val registrationController: RegistrationController = new RegistrationController {
-      override val emailService = mock[EmailService]
-      override val registrationService: RegistartionService = mock[RegistartionService]
-      override val auditService: AuditEvents = mock[AuditEvents]
-
-      override def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
-    }
-
     invalidPayloads.foreach { payload =>
       s"return BAD_REQUEST for invalid payload: '${payload.toString()}'" in {
+
+        val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
+          override val emailService: EmailService = mock[EmailService]
+          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val auditService: AuditEvents = mock[AuditEvents]
+
+          override def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
+        }
+
         val result = await(registrationController.register()(fakeRequest.withBody(payload)))
         status(result) shouldBe BAD_REQUEST
         bodyOf(result) shouldBe "Empty/Invalid JSON received"
@@ -67,6 +66,15 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     }
 
     "return the result of processRegistration if valid payload is given" in {
+
+      val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
+        override val emailService: EmailService = mock[EmailService]
+        override val registrationService: RegistartionService = mock[RegistartionService]
+        override val auditService: AuditEvents = mock[AuditEvents]
+
+        override def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
+      }
+
       val result = await(registrationController.register()(fakeRequest.withBody(validPayload)))
       status(result) shouldBe OK
     }
@@ -74,14 +82,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   }
 
   "processRegistration" should {
-
-    val registrationController: RegistrationController = new RegistrationController {
-      override val emailService = mock[EmailService]
-      override val registrationService: RegistartionService = mock[RegistartionService]
-      override val auditService: AuditEvents = mock[AuditEvents]
-
-      override def saveAndSendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
-    }
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
       ("return the result of saveAndSendEmail if validation is successful", Future.successful(HttpResponse(OK)), ACCEPTED),
@@ -91,6 +91,14 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
+        val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
+          override val emailService: EmailService = mock[EmailService]
+          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val auditService: AuditEvents = mock[AuditEvents]
+
+          override def saveAndSendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
+        }
+
         when(
           registrationController.emailService.validEmail(anyString())(any())
         ).thenReturn(
@@ -103,13 +111,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   }
 
   "saveAndSendEmail" should {
-    val registrationController: RegistrationController = new RegistrationController {
-      override val emailService = mock[EmailService]
-      override val registrationService: RegistartionService = mock[RegistartionService]
-      override val auditService: AuditEvents = mock[AuditEvents]
-
-      override def sendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
-    }
 
     val testCases: List[(String, Future[Boolean], Registration, Int)] = List(
       ("return the result of sendEmail if saving data is successful", Future.successful(true), registration, ACCEPTED),
@@ -119,6 +120,15 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     testCases.foreach { case (testMessage, mockResponse, registrationData, functionStatus) =>
       testMessage in {
+
+        val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
+          override val emailService: EmailService = mock[EmailService]
+          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val auditService: AuditEvents = mock[AuditEvents]
+
+          override def sendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
+        }
+
         when(
           registrationController.registrationService.insertOrUpdate(any[Registration])
         ).thenReturn(
@@ -144,11 +154,6 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
   }
 
   "sendEmail" should {
-    val registrationController: RegistrationController = new RegistrationController {
-      override val emailService = mock[EmailService]
-      override val registrationService: RegistartionService = mock[RegistartionService]
-      override val auditService: AuditEvents = mock[AuditEvents]
-    }
 
     val testCases: List[(String, Future[HttpResponse], Int)] = List(
       ("return the result of OK if sending email returns OK", Future.successful(HttpResponse(ACCEPTED)), OK),
@@ -158,6 +163,12 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
     testCases.foreach { case (testMessage, mockResponse, functionStatus) =>
       testMessage in {
+        val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
+          override val emailService: EmailService = mock[EmailService]
+          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val auditService: AuditEvents = mock[AuditEvents]
+        }
+
         when(
           registrationController.emailService.sendRegistrationEmail(any[Registration])(any[HeaderCarrier])
         ).thenReturn(
