@@ -16,8 +16,10 @@
 
 package controllers
 
+import javax.inject.{Inject, Singleton}
 import models.Registration
 import play.api.Logger
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsObject
 import services.{AuditEvents, RegistartionService, EmailService}
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -27,16 +29,12 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object RegistrationController extends RegistrationController {
-  override val emailService: EmailService = EmailService
-  override val registrationService: RegistartionService = RegistartionService
-  override val auditService: AuditEvents = AuditEvents
-}
+@Singleton
+class RegistrationController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {
 
-trait RegistrationController extends BaseController with ServicesConfig {
-  val emailService: EmailService
-  val registrationService: RegistartionService
-  val auditService: AuditEvents
+  val emailService: EmailService = EmailService
+  val registrationService: RegistartionService = RegistartionService
+  val auditService: AuditEvents = AuditEvents
 
   def register : Action[JsObject] = Action.async(parse.json[JsObject]) {
     implicit request =>

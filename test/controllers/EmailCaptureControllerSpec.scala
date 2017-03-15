@@ -35,14 +35,7 @@ import models.Message
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.i18n.Messages.Implicits.applicationMessagesApi
 
-class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication with ScalaFutures {
-
-  val mockController = new EmailCaptureController(applicationMessagesApi) {
-    override val messageService = mock[MessageService]
-    override val auditService = mock[AuditEvents]
-    override val emailService = mock[EmailService]
-    override val schedulerService = mock[SchedulerService]
-  }
+class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication {
 
   val fakeResponseInternalError = new HttpResponse {  override def status: scala.Int = Status.INTERNAL_SERVER_ERROR}
   val fakeResponseAccepted = new HttpResponse {  override def status: scala.Int = Status.ACCEPTED}
@@ -65,6 +58,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 400 status when supplied with invalid json" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val fakeBody = Json.obj(
         "invalidJson" -> "Invalid Json"
       )
@@ -73,6 +73,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 404 status when supplied with a value in the email field and the email is invalid" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@gmail.com"
       val dateOfBirth1 = LocalDate.parse("2009-05-04", formatter)
       val dateOfBirth2 = LocalDate.parse("2009-09-06", formatter)
@@ -90,12 +97,26 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 400 status when empty json data is passed" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val fakeBody = Json.obj()
       val result = await(mockController.captureEmail()(FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withBody(fakeBody)))
       status(result) shouldBe 400
     }
 
     "return 502 status when the email is valid but there is an RuntimeException with storing the message" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -109,6 +130,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       }
 
       "return 502 status when there is an IllegalStateException with storing the message" in {
+        val mockController = new EmailCaptureController(applicationMessagesApi) {
+          override val messageService = mock[MessageService]
+          override val auditService = mock[AuditEvents]
+          override val emailService = mock[EmailService]
+          override val schedulerService = mock[SchedulerService]
+        }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -121,6 +149,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       }
 
       "return 503 status when the email is valid and there is an ReactiveMongoException with storing the message" in {
+        val mockController = new EmailCaptureController(applicationMessagesApi) {
+          override val messageService = mock[MessageService]
+          override val auditService = mock[AuditEvents]
+          override val emailService = mock[EmailService]
+          override val schedulerService = mock[SchedulerService]
+        }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -136,6 +171,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
 
       //EMAIL SERVICE
       "return 404 status when supplied with a value in the email field and the email is NOT valid" in {
+        val mockController = new EmailCaptureController(applicationMessagesApi) {
+          override val messageService = mock[MessageService]
+          override val auditService = mock[AuditEvents]
+          override val emailService = mock[EmailService]
+          override val schedulerService = mock[SchedulerService]
+        }
+
         val email = "test@test.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -147,6 +189,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       }
 
     "return 502 status when supplied with a value in the email field and is BadGateway exception" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@test.com"
       val fakeBody = Json.obj(
         "emailAddress" -> email,
@@ -158,6 +207,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 503 status when supplied with a value in the email field and is other InternalServer exception" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@test.com"
       val fakeBody = Json.obj(
         "emailAddress" -> email,
@@ -169,6 +225,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 503 status when there is an RuntimeException when checking the email" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -180,6 +243,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       }
 
       "return 503 status when there is an IllegalStateException when checking the email" in {
+        val mockController = new EmailCaptureController(applicationMessagesApi) {
+          override val messageService = mock[MessageService]
+          override val auditService = mock[AuditEvents]
+          override val emailService = mock[EmailService]
+          override val schedulerService = mock[SchedulerService]
+        }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -191,6 +261,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       }
 
       "return 502 status when there is an RuntimeException when sending the email" in {
+        val mockController = new EmailCaptureController(applicationMessagesApi) {
+          override val messageService = mock[MessageService]
+          override val auditService = mock[AuditEvents]
+          override val emailService = mock[EmailService]
+          override val schedulerService = mock[SchedulerService]
+        }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -204,6 +281,14 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
       }
 
     "return 502 status when there is an other InternalServerException while storing" in {
+
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@gmail.com"
       val fakeBody = Json.obj(
         "emailAddress" -> email,
@@ -217,6 +302,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
       "return 502 status when there is an IllegalStateException when sending the email" in {
+        val mockController = new EmailCaptureController(applicationMessagesApi) {
+          override val messageService = mock[MessageService]
+          override val auditService = mock[AuditEvents]
+          override val emailService = mock[EmailService]
+          override val schedulerService = mock[SchedulerService]
+        }
+
         val email = "test@gmail.com"
         val fakeBody = Json.obj(
           "emailAddress" -> email,
@@ -233,6 +325,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
   "Call captureEmail method" should {
 
     "return 200 status when supplied with a value in the email field" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@gmail.com"
       val dateOfBirth1 = LocalDate.parse("2009-05-04", formatter)
       val dateOfBirth2 = LocalDate.parse("2009-09-06", formatter)
@@ -248,6 +347,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 502 status when storing email fails" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@gmail.com"
       when(mockController.messageService.storeMessage(Message(email, england = true))).thenReturn(Future.failed(new Exception("There was an exception")))
       val result = await(mockController.storeAndSend(Message(email, england = true))(hc = any()))
@@ -255,6 +361,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 502 status when supplied with a value in the email field but throws bad gateway error while sending email" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@gmail.com"
       when(mockController.messageService.storeMessage(Message(email, None, true))).thenReturn(Future.successful(Message(email,  england = true)))
       when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = true)))(hc = any())).thenReturn(Future.successful(fakeResponseBadGateway))
@@ -263,6 +376,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "return 503 status when sending email fails" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val email = "test@gmail.com"
       when(mockController.messageService.storeMessage(Message(email, england = false))).thenReturn(Future.successful(Message(email,  england = false)))
       when(mockController.emailService.sendEmail(userData = mockEq(Message(email, england = false)))(hc = any())).thenReturn(Future.successful(fakeResponseInternalError))
@@ -274,6 +394,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
   "Call receive event method" should {
 
     "receive event - return 200 status when a valid json is received with eventType as Sent" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val callBackResponseJson = """{"events": [ {"event": "Sent", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -281,6 +408,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "receive event - return 200 status when a valid json is received with eventType as Not present in call back list" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val callBackResponseJson = """{"events": [ {"event": "Bounce", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -288,6 +422,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "receive event - return 200 status when a valid json is received for scheduled emails" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val callBackResponseJson = """{"events": [ {"event": "Bounce", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "scheduler").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -295,6 +436,13 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "receive event - return 502 status when a invalid json is received" in {
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
+      }
+
       val callBackResponseJson = """{"eventInvalid": [ {"event": "Sent", "detected": "2015-07-02T08:26:39.035Z" }]}"""
       val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withJsonBody(Json.parse(callBackResponseJson)))
 
@@ -302,13 +450,17 @@ class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCE
     }
 
     "receive event - return 400 status when invalid content Type is received" in {
-      val result = mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withTextBody("You naughty!"))
-
-      whenReady(result) {
-        result =>
-          status(result) shouldBe 400
-          jsonBodyOf(result).toString shouldBe "{\"reason\":\"Invalid request content type\"}"
+      val mockController = new EmailCaptureController(applicationMessagesApi) {
+        override val messageService = mock[MessageService]
+        override val auditService = mock[AuditEvents]
+        override val emailService = mock[EmailService]
+        override val schedulerService = mock[SchedulerService]
       }
+
+      val result = await(mockController.receiveEvent("test@test.com", "cc-frontend").apply(FakeRequest().withTextBody("You naughty!")))
+
+      status(result) shouldBe 400
+      jsonBodyOf(result).toString shouldBe "{\"reason\":\"Invalid request content type\"}"
     }
 
   }
