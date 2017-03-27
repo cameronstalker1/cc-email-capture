@@ -97,7 +97,7 @@ trait SchedulerService extends SimpleMongoConnection  {
     }
   }
 
-  def getEmails() = {
+  def getEmails(): Future[Any] = {
     lockEmails().map { emailsList =>
       sendEmail(emailsList)
     }.recover {
@@ -152,7 +152,7 @@ trait SchedulerService extends SimpleMongoConnection  {
     }
   }
 
-  def sendEmail(emailsList: Option[List[String]]) = {
+  def sendEmail(emailsList: Option[List[String]]): Any = {
     if (emailsList.isDefined && emailsList.get.nonEmpty) {
 
       implicit val hc: HeaderCarrier = new HeaderCarrier()
