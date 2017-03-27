@@ -114,7 +114,6 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-
     val startPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
       Json.obj(
         "dob" -> Json.obj(
@@ -127,7 +126,6 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-
     val endPeriod = if(ApplicationConfig.mailEndDate.isSuccess) {
       Json.obj(
         "dob" -> Json.obj(
@@ -140,7 +138,6 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-
     val excludeSentEmails = if(ApplicationConfig.mailExcludeSent) {
       Json.obj(
         "sent" -> Json.obj(
@@ -151,7 +148,6 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-
     val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered && ApplicationConfig.mailDeliveredStatuses.isSuccess) {
       val deliveredStatuses = ApplicationConfig.mailDeliveredStatuses.get
       Json.obj(
@@ -167,7 +163,6 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-
     val excludeBounce = if(ApplicationConfig.mailExcludeBounce) {
       Json.obj(
         "permanentbounce" -> Json.obj(
@@ -178,8 +173,9 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-
-    collection.find(countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce).cursor[Registration]().collect[List]().map(
+    collection.find(
+      countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
+      ).cursor[Registration]().collect[List]().map(
       _.map(
         _.emailAddress
       )
