@@ -103,8 +103,8 @@ class RegistartionRepository()(implicit mongo: () => DB)
     }
   }
 
-  def getEmails(): Future[List[String]] = {
-    val countries = if(ApplicationConfig.mailCountries.isSuccess) {
+  private def filterByCountries() = {
+    if(ApplicationConfig.mailCountries.isSuccess) {
       Json.obj(
         "location" -> Json.obj(
           "$in" -> ApplicationConfig.mailCountries.get
@@ -114,7 +114,10 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    val startPeriod = if(ApplicationConfig.mailStartDate.isSuccess) {
+  }
+
+  private def filterByStartDate() = {
+    if(ApplicationConfig.mailStartDate.isSuccess) {
       Json.obj(
         "dob" -> Json.obj(
           "$elemMatch" -> Json.obj(
@@ -126,7 +129,10 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    val endPeriod = if(ApplicationConfig.mailEndDate.isSuccess) {
+  }
+
+  private def filterByEndDate() = {
+    if(ApplicationConfig.mailEndDate.isSuccess) {
       Json.obj(
         "dob" -> Json.obj(
           "$elemMatch" -> Json.obj(
@@ -138,7 +144,10 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    val excludeSentEmails = if(ApplicationConfig.mailExcludeSent) {
+  }
+
+  private def filterBySent() = {
+    if(ApplicationConfig.mailExcludeSent) {
       Json.obj(
         "sent" -> Json.obj(
           "$exists" -> false
@@ -148,7 +157,10 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    val excludeDelivered = if(ApplicationConfig.mailExcludeDelivered && ApplicationConfig.mailDeliveredStatuses.isSuccess) {
+  }
+
+  private def filterByDelivered() = {
+    if(ApplicationConfig.mailExcludeDelivered && ApplicationConfig.mailDeliveredStatuses.isSuccess) {
       val deliveredStatuses = ApplicationConfig.mailDeliveredStatuses.get
       Json.obj(
         "$or" -> {
@@ -163,7 +175,10 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
-    val excludeBounce = if(ApplicationConfig.mailExcludeBounce) {
+  }
+
+  private def filterByBounce() = {
+    if(ApplicationConfig.mailExcludeBounce) {
       Json.obj(
         "permanentbounce" -> Json.obj(
           "$exists" -> false
@@ -173,6 +188,15 @@ class RegistartionRepository()(implicit mongo: () => DB)
     else {
       Json.obj()
     }
+  }
+
+  def getEmails(): Future[List[String]] = {
+    val countries = filterByCountries()
+    val startPeriod = filterByStartDate()
+    val endPeriod = filterByEndDate()
+    val excludeSentEmails = filterBySent()
+    val excludeDelivered = filterByDelivered()
+    val excludeBounce = filterByBounce()
     collection.find(
       countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
       ).cursor[Registration]().collect[List]().map(
