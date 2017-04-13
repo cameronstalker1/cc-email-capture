@@ -34,6 +34,15 @@ class RegistartionRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Registration, BSONObjectID](csiRegistrationCollection, mongo, Registration.registrationFormat,
     ReactiveMongoFormats.objectIdFormats)  {
 
+  def countEmails(withDOB: Boolean): Future[Int] = {
+    val filter = Json.obj(
+      "dob" -> Json.obj(
+        "$exists" -> withDOB
+      )
+    )
+    collection.count(Some(filter))
+  }
+
   def inserOrUpdate(registration: Registration): Future[Boolean] = {
     collection.update(
       selector = BSONDocument("emailAddress" -> registration.emailAddress),
@@ -180,7 +189,7 @@ class RegistartionRepository()(implicit mongo: () => DB)
   private def filterByBounce() = {
     if(ApplicationConfig.mailExcludeBounce) {
       Json.obj(
-        "permanentbounce" -> Json.obj(
+        "PermanentBounce" -> Json.obj(
           "$exists" -> false
         )
       )

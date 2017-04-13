@@ -33,6 +33,15 @@ import scala.concurrent.Future
 class MessageRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Message, BSONObjectID]("Email", mongo, Message.formats, ReactiveMongoFormats.objectIdFormats)   {
 
+  def countEmails(withDOB: Boolean): Future[Int] = {
+    val filter = Json.obj(
+      "dob" -> Json.obj(
+        "$exists" -> withDOB
+      )
+    )
+    collection.count(Some(filter))
+  }
+
   def storeMessage(message: Message): Future[Message] = {
     withCurrentTime { implicit time =>
       val update = updateQuery(message, time)
@@ -174,7 +183,7 @@ class MessageRepository()(implicit mongo: () => DB)
   private def filterByBounce() = {
     if(ApplicationConfig.mailExcludeBounce) {
       Json.obj(
-        "permanentbounce" -> Json.obj(
+        "PermanentBounce" -> Json.obj(
           "$exists" -> false
         )
       )

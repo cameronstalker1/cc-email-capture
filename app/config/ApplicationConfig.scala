@@ -57,4 +57,6 @@ object ApplicationConfig extends ServicesConfig {
   val mailSendingIntervalSec: Int = getString("mail.sending.interval.s").toInt
   val mailLocking: Int = getString("mail.locking.interval").toInt
 
+  val mailCountEnabled: Boolean = getString("mail.count.enabled").toBoolean
+
 }

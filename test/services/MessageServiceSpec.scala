@@ -18,6 +18,7 @@ package services
 
 import controllers.FakeCCEmailApplication
 import models.Message
+import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
 import repositories.MessageRepository
 import org.mockito.Mockito._
@@ -26,39 +27,57 @@ import scala.concurrent._
 
 class MessageServiceSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication {
 
+  val messageService = new MessageService {
+    override val mongoConnectionUri = ""
+    override val messageRepository = mock[MessageRepository]
+  }
+  
   "Message Service" should {
     "store a message containing email if the email doesn't exist in the database" in {
-      val mockMessageRepository = mock[MessageRepository]
-
-      val individualService = new MessageService {
-        override val mongoConnectionUri = ""
-        override val messageRepository = mockMessageRepository
-      }
-
       when(
-        mockMessageRepository.storeMessage(Message("test1@example.com", None, true))
+        messageService.messageRepository.storeMessage(Message("test1@example.com", None, true))
       ).thenReturn(
         Future.successful(Message("test1@example.com", england = true))
       )
 
-      await(individualService.storeMessage(Message("test1@example.com", None, true)))
+      await(messageService.storeMessage(Message("test1@example.com", None, true)))
     }
 
     "update the record by erasing the dob if the dob is not selected" in {
-      val mockMessageRepository = mock[MessageRepository]
-
-      val individualService = new MessageService {
-        override val mongoConnectionUri = ""
-        override val messageRepository = mockMessageRepository
-      }
-
       when(
-        mockMessageRepository.storeMessage(Message("test1@example.com", england = false))
+        messageService.messageRepository.storeMessage(Message("test1@example.com", england = false))
       ).thenReturn(
         Future.successful(Message("test1@example.com", england = false))
       )
 
-      await(individualService.storeMessage(Message("test1@example.com", england = false)))
+      await(messageService.storeMessage(Message("test1@example.com", england = false)))
     }
+
+    "countEmails" should {
+
+      val results: List[(Int, String, Future[Int], Boolean)] = List(
+        (1, "1", Future.successful(1), true),
+        (2, "2", Future.successful(2), true),
+        (-1, "exception", Future.failed(new RuntimeException), true),
+        (1, "1", Future.successful(1), false),
+        (2, "2", Future.successful(2), false),
+        (-1, "exception", Future.failed(new RuntimeException), false)
+      )
+
+      results.foreach { case (res, message, repositoryResult, withDOB) =>
+        s"return ${res} if MessageRepository.countEmails returns ${message} when with dob = ${withDOB}" in {
+          when(
+            messageService.messageRepository.countEmails(anyBoolean())
+          ).thenReturn(
+            repositoryResult
+          )
+
+          val result = await(messageService.countEmails(withDOB))
+          result shouldBe res
+        }
+      }
+
+    }
+    
   }
 }
