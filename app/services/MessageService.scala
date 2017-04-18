@@ -18,11 +18,13 @@ package services
 
 import config.ApplicationConfig
 import models.Message
+import play.api.Logger
 import reactivemongo.api.FailoverStrategy
 import uk.gov.hmrc.mongo.SimpleMongoConnection
 import repositories.MessageRepository
 import uk.gov.hmrc.play.config.RunMode
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object MessageService extends MessageService with RunMode {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
@@ -34,6 +36,15 @@ trait MessageService extends SimpleMongoConnection {
   val messageRepository: MessageRepository
 
   def storeMessage(message: Message) : Future[Message] = {
-      messageRepository.storeMessage(message)
+    messageRepository.storeMessage(message)
+  }
+
+  def countEmails(withDOB: Boolean): Future[Int] = {
+    messageRepository.countEmails(withDOB).recover {
+      case ex: Exception => {
+        Logger.error(s"Exception counting emails with DOB = ${withDOB} from calculator: ${ex.getMessage}")
+        -1
+      }
     }
+  }
 }

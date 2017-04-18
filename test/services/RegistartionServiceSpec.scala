@@ -32,23 +32,49 @@ class RegistartionServiceSpec extends UnitSpec with MockitoSugar with Registrati
     override val mongoConnectionUri: String = ""
   }
 
-  val results: List[(Boolean, String, Future[Boolean])] = List(
-    (true, "true", Future.successful(true)),
-    (false, "false", Future.successful(false)),
-    (false, "exception", Future.failed(new RuntimeException))
-  )
-
   "insertOrUpdate" should {
 
+    val results: List[(Boolean, String, Future[Boolean])] = List(
+      (true, "true", Future.successful(true)),
+      (false, "false", Future.successful(false)),
+      (false, "exception", Future.failed(new RuntimeException))
+    )
+
     results.foreach { case (res, message, repositoryResult) =>
-      s"return ${res} if RegistrationRepository returns ${message}" in {
+      s"return ${res} if RegistrationRepository.insertOrUpdate returns ${message}" in {
         when(
           registartionService.registartionRepository.inserOrUpdate(any[Registration]())
         ).thenReturn(
-          Future.successful(res)
+          repositoryResult
         )
 
         val result = await(registartionService.insertOrUpdate(registration))
+        result shouldBe res
+      }
+    }
+
+  }
+
+  "countEmails" should {
+
+    val results: List[(Int, String, Future[Int], Boolean)] = List(
+      (1, "1", Future.successful(1), true),
+      (2, "2", Future.successful(2), true),
+      (-1, "exception", Future.failed(new RuntimeException), true),
+      (1, "1", Future.successful(1), false),
+      (2, "2", Future.successful(2), false),
+      (-1, "exception", Future.failed(new RuntimeException), false)
+    )
+
+    results.foreach { case (res, message, repositoryResult, withDOB) =>
+      s"return ${res} if RegistrationRepository.countEmails returns ${message} when with dob = ${withDOB}" in {
+        when(
+          registartionService.registartionRepository.countEmails(anyBoolean())
+        ).thenReturn(
+          repositoryResult
+        )
+
+        val result = await(registartionService.countEmails(withDOB))
         result shouldBe res
       }
     }

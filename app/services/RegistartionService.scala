@@ -18,7 +18,6 @@ package services
 
 import config.ApplicationConfig
 import models.Registration
-import play.Play
 import play.api.Logger
 import reactivemongo.api.FailoverStrategy
 import repositories._
@@ -35,6 +34,15 @@ object RegistartionService extends RegistartionService with RunMode {
 trait RegistartionService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None
   val registartionRepository: RegistartionRepository
+
+  def countEmails(withDOB: Boolean): Future[Int] = {
+    registartionRepository.countEmails(withDOB).recover {
+      case ex: Exception => {
+        Logger.error(s"Exception counting emails with DOB = ${withDOB} from csi: ${ex.getMessage}")
+        -1
+      }
+    }
+  }
 
   def getEmailCount(): Future[Int] = {
     registartionRepository.getEmailCount().map(res => res).recover {

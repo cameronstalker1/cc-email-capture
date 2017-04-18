@@ -51,7 +51,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         csiResult
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't get csi emails: ${ex.getMessage}")
+          Logger.error(s"Can't get csi emails: ${ex.getMessage}")
           List()
         }
       }
@@ -60,7 +60,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         ccResult
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't get cc emails: ${ex.getMessage}")
+          Logger.error(s"Can't get cc emails: ${ex.getMessage}")
           List()
         }
       }
@@ -70,13 +70,13 @@ trait SchedulerService extends SimpleMongoConnection  {
           (csiResult ++ ccResult).distinct
         }.recover {
           case ex: Exception => {
-            Logger.warn(s"Can't get cc emails: ${ex.getMessage}")
+            Logger.error(s"Can't get cc emails: ${ex.getMessage}")
             List()
           }
         }
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't get csi emails: ${ex.getMessage}")
+          Logger.error(s"Can't get csi emails: ${ex.getMessage}")
           List()
         }
       }
@@ -87,10 +87,11 @@ trait SchedulerService extends SimpleMongoConnection  {
     val lock = EmailLock("emailLock", new Duration(ApplicationConfig.mailLocking), lockRepository)
     lock.tryToAcquireOrRenewLock {
       getEmailsList().map { result =>
+        Logger.warn(s"Number of emails to send: ${result.length}")
         result
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't lock emails: ${ex.getMessage}")
+          Logger.error(s"Can't lock emails: ${ex.getMessage}")
           List()
         }
       }
@@ -102,7 +103,7 @@ trait SchedulerService extends SimpleMongoConnection  {
       sendEmail(emailsList)
     }.recover {
       case ex: Exception => {
-        Logger.warn(s"Can't lock emails: ${ex.getMessage}")
+        Logger.error(s"Can't lock emails: ${ex.getMessage}")
       }
     }
   }
@@ -115,13 +116,13 @@ trait SchedulerService extends SimpleMongoConnection  {
             result => result
           }.recover {
             case ex: Exception => {
-              Logger.warn(s"Can't update csi email: ${ex.getMessage}")
+              Logger.error(s"Can't update csi email: ${ex.getMessage}")
               false
             }
           }
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't update cc email: ${ex.getMessage}")
+          Logger.error(s"Can't update cc email: ${ex.getMessage}")
           false
         }
       }
@@ -131,7 +132,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         result => result
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't update cc email: ${ex.getMessage}")
+          Logger.error(s"Can't update cc email: ${ex.getMessage}")
           false
         }
       }
@@ -141,13 +142,13 @@ trait SchedulerService extends SimpleMongoConnection  {
         result => result
       }.recover {
         case ex: Exception => {
-          Logger.warn(s"Can't update csi email: ${ex.getMessage}")
+          Logger.error(s"Can't update csi email: ${ex.getMessage}")
           false
         }
       }
     }
     else {
-      Logger.warn(s"invalid configurion")
+      Logger.error(s"invalid configurion")
       Future (false)
     }
   }
@@ -164,23 +165,24 @@ trait SchedulerService extends SimpleMongoConnection  {
           val email = emailsToSend.head
           emailService.send(ApplicationConfig.mailTemplate, email, "scheduler").map { result =>
             emailsToSend = emailsToSend.tail
+            Logger.warn("Email successfully sent.")
             if(ApplicationConfig.mailSource.contains("cc-frontend")) {
               messageRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
-                  Logger.warn(s"Can't update cc emails: ${ex.getMessage}")
+                  Logger.error(s"Can't update cc emails: ${ex.getMessage}")
                 }
               }
             }
             if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
               registartionRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
-                  Logger.warn(s"Can't update csi emails: ${ex.getMessage}")
+                  Logger.error(s"Can't update csi emails: ${ex.getMessage}")
                 }
               }
             }
           }.recover {
             case ex: Exception => {
-              Logger.warn(s"Can't send email: ${ex.getMessage}")
+              Logger.error(s"Can't send email: ${ex.getMessage}")
             }
           }
         }
