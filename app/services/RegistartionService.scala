@@ -28,12 +28,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object RegistartionService extends RegistartionService with RunMode {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
-  override val registartionRepository: RegistartionRepository = new RegistartionRepository
+  override val registartionRepository: RegistrationRepository = new RegistrationRepository
 }
 
 trait RegistartionService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None
-  val registartionRepository: RegistartionRepository
+  val registartionRepository: RegistrationRepository
 
   def countEmails(withDOB: Boolean): Future[Int] = {
     registartionRepository.countEmails(withDOB).recover {

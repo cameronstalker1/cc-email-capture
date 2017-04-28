@@ -22,7 +22,7 @@ import org.mockito.Mockito._
 import org.scalatestplus.play.{OneAppPerSuite, OneAppPerTest}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeApplication
-import repositories.{RegistartionRepository, MessageRepository}
+import repositories.{RegistrationRepository, MessageRepository}
 import uk.gov.hmrc.lock.LockRepository
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.test.Helpers._
@@ -49,13 +49,13 @@ class SchedulerServiceCSISpec extends UnitSpec with MockitoSugar with OneAppPerS
     "return csi emails if mailSource contains only childcare-schemes-interest-frontend" in {
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
       }
       when(
-        service.registartionRepository.getEmails()
+        service.registrationRepository.getEmails()
       ).thenReturn(
         Future.successful(csiEmails)
       )
@@ -66,7 +66,7 @@ class SchedulerServiceCSISpec extends UnitSpec with MockitoSugar with OneAppPerS
     "return empty list if getEmails throws exception" in {
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
@@ -107,7 +107,7 @@ class SchedulerServiceCCSpec extends UnitSpec with MockitoSugar with OneAppPerSu
 
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
@@ -125,7 +125,7 @@ class SchedulerServiceCCSpec extends UnitSpec with MockitoSugar with OneAppPerSu
     "return empty list if getEmails throws exception" in {
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
@@ -173,7 +173,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
 
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
@@ -193,10 +193,10 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
       result shouldBe (csiEmails ++ ccEmails).distinct
     }
 
-    "return empty list if registartionRepository.getEmails throws exception" in {
+    "return empty list if registrationRepository.getEmails throws exception" in {
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
@@ -213,7 +213,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
     "return empty list if messageRepository.getEmails throws exception" in {
       val service = new SchedulerService {
         override val mongoConnectionUri: String = ""
-        override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+        override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]

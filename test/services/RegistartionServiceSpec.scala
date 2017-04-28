@@ -21,14 +21,14 @@ import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
-import repositories.RegistartionRepository
+import repositories.RegistrationRepository
 import uk.gov.hmrc.play.test.UnitSpec
 import scala.concurrent.Future
 
 class RegistartionServiceSpec extends UnitSpec with MockitoSugar with RegistrationData {
 
   val registartionService: RegistartionService = new RegistartionService {
-    override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+    override val registartionRepository: RegistrationRepository = mock[RegistrationRepository]
     override val mongoConnectionUri: String = ""
   }
 

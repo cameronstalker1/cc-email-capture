@@ -48,6 +48,7 @@ object ApplicationConfig extends ServicesConfig {
   val mailExcludeSent: Boolean = getString("mail.exclude.sent.emails").toBoolean
   val mailExcludeDelivered: Boolean = getString("mail.exclude.delivered.emails").toBoolean
   val mailExcludeBounce: Boolean = getString("mail.exclude.bounce.emails").toBoolean
+  val mailWithNODOB: Boolean = getString("mail.no.dob").toBoolean
 
   def mailSource: List[String] = getListString("mail.source", ",")
 

@@ -22,7 +22,7 @@ import org.joda.time.Duration
 import play.api.Logger
 import play.libs.Akka
 import reactivemongo.api.FailoverStrategy
-import repositories.{MessageRepository, RegistartionRepository}
+import repositories.{MessageRepository, RegistrationRepository}
 import uk.gov.hmrc.lock.LockRepository
 import uk.gov.hmrc.mongo.SimpleMongoConnection
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -32,7 +32,7 @@ import concurrent.duration._
 
 object SchedulerService extends SchedulerService {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
-  override val registartionRepository: RegistartionRepository = new RegistartionRepository
+  override val registrationRepository: RegistrationRepository = new RegistrationRepository
   override val messageRepository: MessageRepository = new MessageRepository
   override val emailService: EmailService = EmailService
   override val lockRepository: LockRepository = new LockRepository
@@ -40,14 +40,14 @@ object SchedulerService extends SchedulerService {
 
 trait SchedulerService extends SimpleMongoConnection  {
   override val failoverStrategy: Option[FailoverStrategy] = None
-  val registartionRepository: RegistartionRepository
+  val registrationRepository: RegistrationRepository
   val messageRepository: MessageRepository
   val lockRepository: LockRepository
   val emailService: EmailService
 
   def getEmailsList(): Future[List[String]] = {
     if (ApplicationConfig.mailSource == List("childcare-schemes-interest-frontend")) {
-      registartionRepository.getEmails().map { csiResult =>
+      registrationRepository.getEmails().map { csiResult =>
         csiResult
       }.recover {
         case ex: Exception => {
@@ -65,7 +65,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         }
       }
     } else {
-      registartionRepository.getEmails().flatMap { csiResult =>
+      registrationRepository.getEmails().flatMap { csiResult =>
         messageRepository.getEmails().map { ccResult =>
           (csiResult ++ ccResult).distinct
         }.recover {
@@ -112,7 +112,7 @@ trait SchedulerService extends SimpleMongoConnection  {
     if(ApplicationConfig.mailSource.contains("cc-frontend") && ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
       messageRepository.emailStatus(email, status).flatMap {
         result =>
-          registartionRepository.emailStatus(email, status).map {
+          registrationRepository.emailStatus(email, status).map {
             result => result
           }.recover {
             case ex: Exception => {
@@ -138,7 +138,7 @@ trait SchedulerService extends SimpleMongoConnection  {
       }
     }
     else if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
-      registartionRepository.emailStatus(email, status).map {
+      registrationRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
@@ -174,7 +174,7 @@ trait SchedulerService extends SimpleMongoConnection  {
               }
             }
             if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
-              registartionRepository.markEmailAsSent(email).recover {
+              registrationRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
                   Logger.error(s"Can't update csi emails: ${ex.getMessage}")
                 }

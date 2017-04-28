@@ -193,6 +193,19 @@ class MessageRepository()(implicit mongo: () => DB)
     }
   }
 
+  private def filterByNoDOB() = {
+    if(ApplicationConfig.mailWithNODOB) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+  }
+
   def getEmails(): Future[List[String]] = {
     val countries = filterByCountries()
     val startPeriod = filterByStartDate()
@@ -200,7 +213,18 @@ class MessageRepository()(implicit mongo: () => DB)
     val excludeSentEmails = filterByExcludeSent()
     val excludeDelivered = filterByDelivered()
     val excludeBounce = filterByBounce()
-    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
+    val emailsWithNoDOB = filterByNoDOB()
+    println(s"*****************startPeriod*****$startPeriod")
+    println(s"*****************endPeriod*****$endPeriod")
+    println(s"*****************startPeriod.deepMerge(endPeriod)*****${startPeriod.deepMerge(endPeriod)}")
+    println(s"*****************startPeriod ++ endPeriod*****${startPeriod ++ endPeriod}")
+    println(s"*****************emailsWithNoDOB*****$emailsWithNoDOB")
+    println(s"*****************startPeriod.deepMerge(endPeriod).deepMerge(emailsWithNoDOB)*****${startPeriod.deepMerge(endPeriod).deepMerge(emailsWithNoDOB)}")
+    println(s"*****************startPeriod ++ endPeriod ++ emailsWithNoDOB*****${startPeriod ++ endPeriod ++ emailsWithNoDOB}")
+    println(s"*****************countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce*****" +
+      s"${countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce}")
+
+    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
     collection.find(filter).cursor[Message]().collect[List]().map(
       _.map(
         _.emailAddress
