@@ -72,7 +72,7 @@ class SchedulerServiceCSISpec extends UnitSpec with MockitoSugar with OneAppPerS
         override val lockRepository: LockRepository = mock[LockRepository]
       }
       when(
-        service.registartionRepository.getEmails()
+        service.registrationRepository.getEmails()
       ).thenReturn(
         Future.failed(new Exception)
       )
@@ -180,7 +180,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
       }
 
       when(
-        service.registartionRepository.getEmails()
+        service.registrationRepository.getEmails()
       ).thenReturn(
         Future.successful(csiEmails)
       )
@@ -202,7 +202,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
         override val lockRepository: LockRepository = mock[LockRepository]
       }
       when(
-        service.registartionRepository.getEmails()
+        service.registrationRepository.getEmails()
       ).thenReturn(
         Future.failed(new Exception)
       )
@@ -219,7 +219,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
         override val lockRepository: LockRepository = mock[LockRepository]
       }
       when(
-        service.registartionRepository.getEmails()
+        service.registrationRepository.getEmails()
       ).thenReturn(
         Future.successful(csiEmails)
       )

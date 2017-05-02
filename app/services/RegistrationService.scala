@@ -26,17 +26,17 @@ import uk.gov.hmrc.play.config.RunMode
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object RegistartionService extends RegistartionService with RunMode {
+object RegistrationService extends RegistrationService with RunMode {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
-  override val registartionRepository: RegistrationRepository = new RegistrationRepository
+  override val registrationRepository: RegistrationRepository = new RegistrationRepository
 }
 
-trait RegistartionService extends SimpleMongoConnection {
+trait RegistrationService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None
-  val registartionRepository: RegistrationRepository
+  val registrationRepository: RegistrationRepository
 
   def countEmails(withDOB: Boolean): Future[Int] = {
-    registartionRepository.countEmails(withDOB).recover {
+    registrationRepository.countEmails(withDOB).recover {
       case ex: Exception => {
         Logger.error(s"Exception counting emails with DOB = ${withDOB} from csi: ${ex.getMessage}")
         -1
@@ -45,27 +45,27 @@ trait RegistartionService extends SimpleMongoConnection {
   }
 
   def getEmailCount(): Future[Int] = {
-    registartionRepository.getEmailCount().map(res => res).recover {
+    registrationRepository.getEmailCount().map(res => res).recover {
       case ex => {
-        Logger.error(s"\n ========= RegistartionService: EmailCount failed with exception ${ex.getMessage} ========= \n")
+        Logger.error(s"\n ========= RegistrationService: EmailCount failed with exception ${ex.getMessage} ========= \n")
         -1
       }
     }
   }
 
   def getLocationCount(): Future[Map[String, Int]] = {
-    registartionRepository.getLocationCount().map(res => res).recover {
+    registrationRepository.getLocationCount().map(res => res).recover {
       case ex => {
-        Logger.error(s"\n ========= RegistartionService: LocationCount failed with exception ${ex.getMessage} ========= \n")
+        Logger.error(s"\n ========= RegistrationService: LocationCount failed with exception ${ex.getMessage} ========= \n")
         Map.empty
       }
     }
   }
 
   def insertOrUpdate(registration: Registration): Future[Boolean] = {
-    registartionRepository.inserOrUpdate(registration).map(res => res).recover {
+    registrationRepository.inserOrUpdate(registration).map(res => res).recover {
       case ex => {
-        Logger.error(s"\n ========= RegistartionService: InserOrUpdate failed with exception ${ex.getMessage} ========= \n")
+        Logger.error(s"\n ========= RegistrationService: InserOrUpdate failed with exception ${ex.getMessage} ========= \n")
         false
       }
     }
