@@ -51,7 +51,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         csiResult
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't get csi emails: ${ex.getMessage}")
+          Logger.error(s"getEmailsList:: Can't get csi emails: ${ex.getMessage}")
           List()
         }
       }
@@ -60,7 +60,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         ccResult
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't get cc emails: ${ex.getMessage}")
+          Logger.error(s"getEmailsList:: Can't get cc emails: ${ex.getMessage}")
           List()
         }
       }
@@ -70,13 +70,13 @@ trait SchedulerService extends SimpleMongoConnection  {
           (csiResult ++ ccResult).distinct
         }.recover {
           case ex: Exception => {
-            Logger.error(s"Can't get cc emails: ${ex.getMessage}")
+            Logger.error(s"CC getEmailsList:: Can't get cc emails: ${ex.getMessage}")
             List()
           }
         }
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't get csi emails: ${ex.getMessage}")
+          Logger.error(s"CSI getEmailsList:: Can't get csi emails: ${ex.getMessage}")
           List()
         }
       }
@@ -116,39 +116,36 @@ trait SchedulerService extends SimpleMongoConnection  {
             result => result
           }.recover {
             case ex: Exception => {
-              Logger.error(s"Can't update csi email: ${ex.getMessage}")
+              Logger.error(s"mailDelivered():: Can't update csi email: ${ex.getMessage}")
               false
             }
           }
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't update cc email: ${ex.getMessage}")
+          Logger.error(s"mailDelivered():: Can't update cc email: ${ex.getMessage}")
           false
         }
       }
-    }
-    else if(ApplicationConfig.mailSource.contains("cc-frontend")) {
+    } else if(ApplicationConfig.mailSource.contains("cc-frontend")) {
       messageRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't update cc email: ${ex.getMessage}")
+          Logger.error(s"mailDelivered:: Can't update cc email: ${ex.getMessage}")
           false
         }
       }
-    }
-    else if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+    } else if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
       registrationRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't update csi email: ${ex.getMessage}")
+          Logger.error(s"mailDelivered:: Can't update csi email: ${ex.getMessage}")
           false
         }
       }
-    }
-    else {
-      Logger.error(s"invalid configurion")
+    } else {
+      Logger.error(s"mailDelivered:: invalid configurion")
       Future (false)
     }
   }
@@ -169,20 +166,20 @@ trait SchedulerService extends SimpleMongoConnection  {
             if(ApplicationConfig.mailSource.contains("cc-frontend")) {
               messageRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
-                  Logger.error(s"Can't update cc emails: ${ex.getMessage}")
+                  Logger.error(s"SchedulerService.sendEmail:: Can't update cc emails: ${ex.getMessage}")
                 }
               }
             }
             if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
               registrationRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
-                  Logger.error(s"Can't update csi emails: ${ex.getMessage}")
+                  Logger.error(s"SchedulerService.sendEmail:: Can't update csi emails: ${ex.getMessage}")
                 }
               }
             }
           }.recover {
             case ex: Exception => {
-              Logger.error(s"Can't send email: ${ex.getMessage}")
+              Logger.error(s"SchedulerService.sendEmail:: Can't send email: ${ex.getMessage}")
             }
           }
         }

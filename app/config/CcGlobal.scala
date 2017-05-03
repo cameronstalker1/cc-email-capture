@@ -97,11 +97,11 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
         Logger.warn(s"Number of emails with DOB from calculator: ${result}")
       }
 
-      MessageService.countEmails(false).map { result =>
+      MessageService.countEmails(true).map { result =>
         Logger.warn(s"Number of emails without DOB from calculator: ${result}")
       }
 
-      RegistrationService.countEmails(true).map { result =>
+      RegistrationService.countEmails(false).map { result =>
         Logger.warn(s"Number of emails with DOB from csi: ${result}")
       }
 
