@@ -193,6 +193,19 @@ class MessageRepository()(implicit mongo: () => DB)
     }
   }
 
+  private def filterByNoDOB() = {
+    if(ApplicationConfig.mailWithNODOB) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+  }
+
   def getEmails(): Future[List[String]] = {
     val countries = filterByCountries()
     val startPeriod = filterByStartDate()
@@ -200,7 +213,9 @@ class MessageRepository()(implicit mongo: () => DB)
     val excludeSentEmails = filterByExcludeSent()
     val excludeDelivered = filterByDelivered()
     val excludeBounce = filterByBounce()
-    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
+    val emailsWithNoDOB = filterByNoDOB()
+
+    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
     collection.find(filter).cursor[Message]().collect[List]().map(
       _.map(
         _.emailAddress

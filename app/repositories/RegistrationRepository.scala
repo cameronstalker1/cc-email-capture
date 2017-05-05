@@ -30,7 +30,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class RegistartionRepository()(implicit mongo: () => DB)
+class RegistrationRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Registration, BSONObjectID](csiRegistrationCollection, mongo, Registration.registrationFormat,
     ReactiveMongoFormats.objectIdFormats)  {
 
@@ -199,6 +199,19 @@ class RegistartionRepository()(implicit mongo: () => DB)
     }
   }
 
+  private def filterByNoDOB() = {
+    if(ApplicationConfig.mailWithNODOB) {
+      Json.obj(
+        "dob" -> Json.obj(
+          "$exists" -> false
+        )
+      )
+    }
+    else {
+      Json.obj()
+    }
+  }
+
   def getEmails(): Future[List[String]] = {
     val countries = filterByCountries()
     val startPeriod = filterByStartDate()
@@ -206,8 +219,10 @@ class RegistartionRepository()(implicit mongo: () => DB)
     val excludeSentEmails = filterBySent()
     val excludeDelivered = filterByDelivered()
     val excludeBounce = filterByBounce()
+    val emailsWithNoDOB = filterByNoDOB()
+
     collection.find(
-      countries ++ startPeriod.deepMerge(endPeriod) ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
+      countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
       ).cursor[Registration]().collect[List]().map(
       _.map(
         _.emailAddress

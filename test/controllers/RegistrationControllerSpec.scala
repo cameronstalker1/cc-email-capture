@@ -23,7 +23,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import play.api.mvc.Result
 import play.api.test.FakeRequest
-import services.{AuditEvents, RegistartionService, EmailService}
+import services.{AuditEvents, RegistrationService, EmailService}
 import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.test.Helpers._
@@ -41,7 +41,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
     }
 
     "use rhe right RegistrationService" in {
-      new RegistrationController(applicationMessagesApi).registrationService shouldBe RegistartionService
+      new RegistrationController(applicationMessagesApi).registrationService shouldBe RegistrationService
     }
 
   }
@@ -53,7 +53,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
         val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
           override val emailService: EmailService = mock[EmailService]
-          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val registrationService: RegistrationService = mock[RegistrationService]
           override val auditService: AuditEvents = mock[AuditEvents]
 
           override def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
@@ -69,7 +69,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
       val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
         override val emailService: EmailService = mock[EmailService]
-        override val registrationService: RegistartionService = mock[RegistartionService]
+        override val registrationService: RegistrationService = mock[RegistrationService]
         override val auditService: AuditEvents = mock[AuditEvents]
 
         override def processRegistration(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Ok)
@@ -93,7 +93,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       testMessage in {
         val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
           override val emailService: EmailService = mock[EmailService]
-          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val registrationService: RegistrationService = mock[RegistrationService]
           override val auditService: AuditEvents = mock[AuditEvents]
 
           override def saveAndSendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
@@ -123,7 +123,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
 
         val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
           override val emailService: EmailService = mock[EmailService]
-          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val registrationService: RegistrationService = mock[RegistrationService]
           override val auditService: AuditEvents = mock[AuditEvents]
 
           override def sendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = Future.successful(Accepted)
@@ -165,7 +165,7 @@ class RegistrationControllerSpec extends UnitSpec with MockitoSugar with Registr
       testMessage in {
         val registrationController: RegistrationController = new RegistrationController(applicationMessagesApi) {
           override val emailService: EmailService = mock[EmailService]
-          override val registrationService: RegistartionService = mock[RegistartionService]
+          override val registrationService: RegistrationService = mock[RegistrationService]
           override val auditService: AuditEvents = mock[AuditEvents]
         }
 
