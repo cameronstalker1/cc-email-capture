@@ -36,6 +36,7 @@ object SchedulerService extends SchedulerService {
   override val messageRepository: MessageRepository = new MessageRepository
   override val emailService: EmailService = EmailService
   override val lockRepository: LockRepository = new LockRepository
+  override val auditService: AuditEvents = AuditEvents
 }
 
 trait SchedulerService extends SimpleMongoConnection  {
@@ -45,9 +46,15 @@ trait SchedulerService extends SimpleMongoConnection  {
   val lockRepository: LockRepository
   val emailService: EmailService
 
+  val auditService: AuditEvents
+
+
+  implicit val hc: HeaderCarrier = new HeaderCarrier()
+
   def getEmailsList(): Future[List[String]] = {
     if (ApplicationConfig.mailSource == List("childcare-schemes-interest-frontend")) {
       registartionRepository.getEmails().map { csiResult =>
+        auditService.scheduledEmailsToSend(csiResult.size, "CSI")
         csiResult
       }.recover {
         case ex: Exception => {
@@ -57,6 +64,7 @@ trait SchedulerService extends SimpleMongoConnection  {
       }
     } else if (ApplicationConfig.mailSource == List("cc-frontend")) {
       messageRepository.getEmails().map { ccResult =>
+        auditService.scheduledEmailsToSend(ccResult.size, "CC")
         ccResult
       }.recover {
         case ex: Exception => {
@@ -66,8 +74,13 @@ trait SchedulerService extends SimpleMongoConnection  {
       }
     } else {
       registartionRepository.getEmails().flatMap { csiResult =>
+        auditService.scheduledEmailsToSend(csiResult.size, "CSI")
         messageRepository.getEmails().map { ccResult =>
-          (csiResult ++ ccResult).distinct
+          auditService.scheduledEmailsToSend(ccResult.size, "CC")
+
+          val total = (csiResult ++ ccResult).distinct
+          auditService.scheduledEmailsToSend(total.size, "CSI + CC")
+          total
         }.recover {
           case ex: Exception => {
             Logger.error(s"Can't get cc emails: ${ex.getMessage}")
@@ -156,15 +169,21 @@ trait SchedulerService extends SimpleMongoConnection  {
   def sendEmail(emailsList: Option[List[String]]): Any = {
     if (emailsList.isDefined && emailsList.get.nonEmpty) {
 
-      implicit val hc: HeaderCarrier = new HeaderCarrier()
-
       var emailsToSend = emailsList.get
+      Logger.warn(s"Prepare to send ${emailsToSend.size} emails.")
+
+      var sentEmails: Int = 0
 
       Akka.system.scheduler.schedule(ApplicationConfig.mailSendingDelayMS milliseconds, ApplicationConfig.mailSendingIntervalSec seconds) {
+        Logger.info("Scheduling...")
+
         if (emailsToSend.nonEmpty) {
           val email = emailsToSend.head
           emailService.send(ApplicationConfig.mailTemplate, email, "scheduler").map { result =>
+            auditService.sendingScheduledEmails(email, "success", Some(result.status))
             emailsToSend = emailsToSend.tail
+            sentEmails += 1
+
             Logger.warn("Email successfully sent.")
             if(ApplicationConfig.mailSource.contains("cc-frontend")) {
               messageRepository.markEmailAsSent(email).recover {
@@ -180,8 +199,13 @@ trait SchedulerService extends SimpleMongoConnection  {
                 }
               }
             }
+
+            if(emailsToSend.isEmpty) {
+              Logger.warn(s"Successfully sent: ${sentEmails}")
+            }
           }.recover {
             case ex: Exception => {
+              auditService.sendingScheduledEmails(email, "failed", None)
               Logger.error(s"Can't send email: ${ex.getMessage}")
             }
           }
