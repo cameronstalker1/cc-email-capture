@@ -53,6 +53,7 @@ class SchedulerServiceCSISpec extends UnitSpec with MockitoSugar with OneAppPerS
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
       when(
         service.registrationRepository.getEmails()
@@ -70,6 +71,7 @@ class SchedulerServiceCSISpec extends UnitSpec with MockitoSugar with OneAppPerS
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
       when(
         service.registrationRepository.getEmails()
@@ -111,6 +113,7 @@ class SchedulerServiceCCSpec extends UnitSpec with MockitoSugar with OneAppPerSu
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
 
       when(
@@ -129,6 +132,7 @@ class SchedulerServiceCCSpec extends UnitSpec with MockitoSugar with OneAppPerSu
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
       when(
         service.messageRepository.getEmails()
@@ -177,6 +181,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
 
       when(
@@ -200,6 +205,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
       when(
         service.registrationRepository.getEmails()
@@ -217,6 +223,7 @@ class SchedulerServiceCSICCSpec extends UnitSpec with MockitoSugar with OneAppPe
         override val messageRepository: MessageRepository = mock[MessageRepository]
         override val emailService: EmailService = mock[EmailService]
         override val lockRepository: LockRepository = mock[LockRepository]
+        override val auditService: AuditEvents = mock[AuditEvents]
       }
       when(
         service.registrationRepository.getEmails()

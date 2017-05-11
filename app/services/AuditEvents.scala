@@ -39,6 +39,23 @@ trait AuditEvents {
     }
   }
 
+  def scheduledEmailsToSend(numberOfEmails: Int, source: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
+    sendEvent(
+      "scheduled-emails-to-send", Map(
+        "numberOfEmails" -> numberOfEmails.toString,
+        "source" -> source
+      )
+    )
+
+  def sendingScheduledEmails(email: String, status: String, emailResponse: Option[Int])(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
+    sendEvent(
+      "scheduled-emails", Map(
+        "email" -> email,
+        "status" -> status,
+        "emailResponse" -> emailResponse.getOrElse(-1).toString
+      )
+    )
+
   def sendEmailStatusEvent(emailStatus: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) : Unit =
     sendEvent("email-sent-status", Map(("email-sent-status" -> emailStatus)))
 
