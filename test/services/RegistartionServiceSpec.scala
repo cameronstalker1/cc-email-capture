@@ -21,14 +21,14 @@ import models.Registration
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._
-import repositories.RegistartionRepository
+import repositories.RegistrationRepository
 import uk.gov.hmrc.play.test.UnitSpec
 import scala.concurrent.Future
 
 class RegistartionServiceSpec extends UnitSpec with MockitoSugar with RegistrationData {
 
-  val registartionService: RegistartionService = new RegistartionService {
-    override val registartionRepository: RegistartionRepository = mock[RegistartionRepository]
+  val registartionService: RegistrationService = new RegistrationService {
+    override val registrationRepository: RegistrationRepository = mock[RegistrationRepository]
     override val mongoConnectionUri: String = ""
   }
 
@@ -43,7 +43,7 @@ class RegistartionServiceSpec extends UnitSpec with MockitoSugar with Registrati
     results.foreach { case (res, message, repositoryResult) =>
       s"return ${res} if RegistrationRepository.insertOrUpdate returns ${message}" in {
         when(
-          registartionService.registartionRepository.inserOrUpdate(any[Registration]())
+          registartionService.registrationRepository.inserOrUpdate(any[Registration]())
         ).thenReturn(
           repositoryResult
         )
@@ -69,7 +69,7 @@ class RegistartionServiceSpec extends UnitSpec with MockitoSugar with Registrati
     results.foreach { case (res, message, repositoryResult, withDOB) =>
       s"return ${res} if RegistrationRepository.countEmails returns ${message} when with dob = ${withDOB}" in {
         when(
-          registartionService.registartionRepository.countEmails(anyBoolean())
+          registartionService.registrationRepository.countEmails(anyBoolean())
         ).thenReturn(
           repositoryResult
         )

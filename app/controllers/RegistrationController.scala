@@ -21,7 +21,7 @@ import models.Registration
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsObject
-import services.{AuditEvents, RegistartionService, EmailService}
+import services.{AuditEvents, RegistrationService, EmailService}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -33,7 +33,7 @@ import scala.concurrent.Future
 class RegistrationController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {
 
   val emailService: EmailService = EmailService
-  val registrationService: RegistartionService = RegistartionService
+  val registrationService: RegistrationService = RegistrationService
   val auditService: AuditEvents = AuditEvents
 
   def register : Action[JsObject] = Action.async(parse.json[JsObject]) {

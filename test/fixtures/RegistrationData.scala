@@ -22,7 +22,7 @@ import play.api.libs.json.{Json, JsObject}
 
 trait RegistrationData {
 
-  val registration: Registration = Registration("england", List(LocalDate.now()), "example@example.example")
+  val registration: Registration = Registration("england", Some(List(LocalDate.now())), "example@example.example")
 
   val validPayload: JsObject = Json.toJson(registration).as[JsObject]
 

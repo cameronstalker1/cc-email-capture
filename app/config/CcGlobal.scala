@@ -19,7 +19,7 @@ package config
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api.{Logger, Application, Configuration, Play}
-import services.{RegistartionService, MessageService, SchedulerService}
+import services.{RegistrationService, MessageService, SchedulerService}
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -101,11 +101,11 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
         Logger.warn(s"Number of emails without DOB from calculator: ${result}")
       }
 
-      RegistartionService.countEmails(true).map { result =>
+      RegistrationService.countEmails(true).map { result =>
         Logger.warn(s"Number of emails with DOB from csi: ${result}")
       }
 
-      RegistartionService.countEmails(false).map { result =>
+      RegistrationService.countEmails(false).map { result =>
         Logger.warn(s"Number of emails without DOB from csi: ${result}")
       }
     }

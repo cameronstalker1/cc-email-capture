@@ -22,7 +22,7 @@ import org.joda.time.Duration
 import play.api.Logger
 import play.libs.Akka
 import reactivemongo.api.FailoverStrategy
-import repositories.{MessageRepository, RegistartionRepository}
+import repositories.{MessageRepository, RegistrationRepository}
 import uk.gov.hmrc.lock.LockRepository
 import uk.gov.hmrc.mongo.SimpleMongoConnection
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -32,7 +32,7 @@ import concurrent.duration._
 
 object SchedulerService extends SchedulerService {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri
-  override val registartionRepository: RegistartionRepository = new RegistartionRepository
+  override val registrationRepository: RegistrationRepository = new RegistrationRepository
   override val messageRepository: MessageRepository = new MessageRepository
   override val emailService: EmailService = EmailService
   override val lockRepository: LockRepository = new LockRepository
@@ -41,7 +41,7 @@ object SchedulerService extends SchedulerService {
 
 trait SchedulerService extends SimpleMongoConnection  {
   override val failoverStrategy: Option[FailoverStrategy] = None
-  val registartionRepository: RegistartionRepository
+  val registrationRepository: RegistrationRepository
   val messageRepository: MessageRepository
   val lockRepository: LockRepository
   val emailService: EmailService
@@ -53,12 +53,12 @@ trait SchedulerService extends SimpleMongoConnection  {
 
   def getEmailsList(): Future[List[String]] = {
     if (ApplicationConfig.mailSource == List("childcare-schemes-interest-frontend")) {
-      registartionRepository.getEmails().map { csiResult =>
+      registrationRepository.getEmails().map { csiResult =>
         auditService.scheduledEmailsToSend(csiResult.size, "CSI")
         csiResult
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't get csi emails: ${ex.getMessage}")
+          Logger.error(s"getEmailsList:: Can't get csi emails: ${ex.getMessage}")
           List()
         }
       }
@@ -68,12 +68,12 @@ trait SchedulerService extends SimpleMongoConnection  {
         ccResult
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't get cc emails: ${ex.getMessage}")
+          Logger.error(s"getEmailsList:: Can't get cc emails: ${ex.getMessage}")
           List()
         }
       }
     } else {
-      registartionRepository.getEmails().flatMap { csiResult =>
+      registrationRepository.getEmails().flatMap { csiResult =>
         auditService.scheduledEmailsToSend(csiResult.size, "CSI")
         messageRepository.getEmails().map { ccResult =>
           auditService.scheduledEmailsToSend(ccResult.size, "CC")
@@ -83,13 +83,13 @@ trait SchedulerService extends SimpleMongoConnection  {
           total
         }.recover {
           case ex: Exception => {
-            Logger.error(s"Can't get cc emails: ${ex.getMessage}")
+            Logger.error(s"CC getEmailsList:: Can't get cc emails: ${ex.getMessage}")
             List()
           }
         }
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't get csi emails: ${ex.getMessage}")
+          Logger.error(s"CSI getEmailsList:: Can't get csi emails: ${ex.getMessage}")
           List()
         }
       }
@@ -125,43 +125,40 @@ trait SchedulerService extends SimpleMongoConnection  {
     if(ApplicationConfig.mailSource.contains("cc-frontend") && ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
       messageRepository.emailStatus(email, status).flatMap {
         result =>
-          registartionRepository.emailStatus(email, status).map {
+          registrationRepository.emailStatus(email, status).map {
             result => result
           }.recover {
             case ex: Exception => {
-              Logger.error(s"Can't update csi email: ${ex.getMessage}")
+              Logger.error(s"mailDelivered():: Can't update csi email: ${ex.getMessage}")
               false
             }
           }
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't update cc email: ${ex.getMessage}")
+          Logger.error(s"mailDelivered():: Can't update cc email: ${ex.getMessage}")
           false
         }
       }
-    }
-    else if(ApplicationConfig.mailSource.contains("cc-frontend")) {
+    } else if(ApplicationConfig.mailSource.contains("cc-frontend")) {
       messageRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't update cc email: ${ex.getMessage}")
+          Logger.error(s"mailDelivered:: Can't update cc email: ${ex.getMessage}")
           false
         }
       }
-    }
-    else if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
-      registartionRepository.emailStatus(email, status).map {
+    } else if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
+      registrationRepository.emailStatus(email, status).map {
         result => result
       }.recover {
         case ex: Exception => {
-          Logger.error(s"Can't update csi email: ${ex.getMessage}")
+          Logger.error(s"mailDelivered:: Can't update csi email: ${ex.getMessage}")
           false
         }
       }
-    }
-    else {
-      Logger.error(s"invalid configurion")
+    } else {
+      Logger.error(s"mailDelivered:: invalid configurion")
       Future (false)
     }
   }
@@ -188,14 +185,14 @@ trait SchedulerService extends SimpleMongoConnection  {
             if(ApplicationConfig.mailSource.contains("cc-frontend")) {
               messageRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
-                  Logger.error(s"Can't update cc emails: ${ex.getMessage}")
+                  Logger.error(s"SchedulerService.sendEmail:: Can't update cc emails: ${ex.getMessage}")
                 }
               }
             }
             if(ApplicationConfig.mailSource.contains("childcare-schemes-interest-frontend")) {
-              registartionRepository.markEmailAsSent(email).recover {
+              registrationRepository.markEmailAsSent(email).recover {
                 case ex: Exception => {
-                  Logger.error(s"Can't update csi emails: ${ex.getMessage}")
+                  Logger.error(s"SchedulerService.sendEmail:: Can't update csi emails: ${ex.getMessage}")
                 }
               }
             }
@@ -206,7 +203,7 @@ trait SchedulerService extends SimpleMongoConnection  {
           }.recover {
             case ex: Exception => {
               auditService.sendingScheduledEmails(email, "failed", None)
-              Logger.error(s"Can't send email: ${ex.getMessage}")
+              Logger.error(s"SchedulerService.sendEmail:: Can't send email: ${ex.getMessage}")
             }
           }
         }
