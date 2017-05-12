@@ -175,7 +175,7 @@ trait SchedulerService extends SimpleMongoConnection  {
         Logger.info("Scheduling...")
 
         if (emailsToSend.nonEmpty) {
-          val email = emailsToSend.head
+          val email = emailsToSend.head.trim
           auditService.sendingScheduledEmails(email, "process", None)
           Logger.warn(s"Email to process: ${email}")
           emailService.send(ApplicationConfig.mailTemplate, email, "scheduler").map { result =>

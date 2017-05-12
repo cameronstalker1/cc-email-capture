@@ -39,6 +39,15 @@ trait MessageService extends SimpleMongoConnection {
     messageRepository.storeMessage(message)
   }
 
+  def countSentEmails(): Future[List[String]] = {
+    messageRepository.countSentEmails().map(res => res).recover {
+      case ex: Exception => {
+        Logger.error(s"Exception counting sent emails from cc: ${ex.getMessage}")
+        List.empty
+      }
+    }
+  }
+
   def countEmails(withDOB: Boolean): Future[Int] = {
     messageRepository.countEmails(withDOB).recover {
       case ex: Exception => {

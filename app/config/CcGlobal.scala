@@ -93,20 +93,12 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
     }
 
     if(ApplicationConfig.mailCountEnabled) {
-      MessageService.countEmails(true).map { result =>
-        Logger.warn(s"Number of emails with DOB from calculator: ${result}")
-      }
-
-      MessageService.countEmails(false).map { result =>
-        Logger.warn(s"Number of emails without DOB from calculator: ${result}")
-      }
-
-      RegistrationService.countEmails(true).map { result =>
-        Logger.warn(s"Number of emails with DOB from csi: ${result}")
-      }
-
-      RegistrationService.countEmails(false).map { result =>
-        Logger.warn(s"Number of emails without DOB from csi: ${result}")
+      MessageService.countSentEmails().flatMap { calc =>
+        Logger.warn(s"Number of emails sent from calculator: ${calc.size}")
+        RegistrationService.countSentEmails().map { csi =>
+          Logger.warn(s"Number of emails sent from csi: ${csi.size}")
+          Logger.warn(s"Number of unique emails sent from both: ${(calc ++ csi).distinct.size}")
+        }
       }
     }
 
