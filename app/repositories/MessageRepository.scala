@@ -223,4 +223,22 @@ class MessageRepository()(implicit mongo: () => DB)
     )
   }
 
+  def countSentEmails(): Future[List[String]] = {
+    val countries = filterByCountries()
+    val startPeriod = filterByStartDate()
+    val endPeriod = filterByEndDate()
+    val sentEmails = Json.obj(
+      "sent" -> Json.obj(
+        "$exists" -> true
+      )
+    )
+    val emailsWithNoDOB = filterByNoDOB()
+    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ sentEmails
+    collection.find(filter).cursor[Message]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
+  }
+
 }

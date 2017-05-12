@@ -221,9 +221,26 @@ class RegistrationRepository()(implicit mongo: () => DB)
     val excludeBounce = filterByBounce()
     val emailsWithNoDOB = filterByNoDOB()
 
-    collection.find(
-      countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
-      ).cursor[Registration]().collect[List]().map(
+    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ excludeSentEmails ++ excludeDelivered ++ excludeBounce
+    collection.find(filter).cursor[Registration]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
+  }
+
+  def countSentEmails(): Future[List[String]] = {
+    val countries = filterByCountries()
+    val startPeriod = filterByStartDate()
+    val endPeriod = filterByEndDate()
+    val sentEmails = Json.obj(
+      "sent" -> Json.obj(
+        "$exists" -> true
+      )
+    )
+    val emailsWithNoDOB = filterByNoDOB()
+    val filter = countries ++ startPeriod.deepMerge(endPeriod) ++ emailsWithNoDOB ++ sentEmails
+    collection.find(filter).cursor[Registration]().collect[List]().map(
       _.map(
         _.emailAddress
       )

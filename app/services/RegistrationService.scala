@@ -35,6 +35,15 @@ trait RegistrationService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None
   val registrationRepository: RegistrationRepository
 
+  def countSentEmails(): Future[List[String]] = {
+    registrationRepository.countSentEmails().map(res => res).recover {
+      case ex: Exception => {
+        Logger.error(s"Exception counting sent emails from csi: ${ex.getMessage}")
+        List.empty
+      }
+    }
+  }
+
   def countEmails(withDOB: Boolean): Future[Int] = {
     registrationRepository.countEmails(withDOB).recover {
       case ex: Exception => {
