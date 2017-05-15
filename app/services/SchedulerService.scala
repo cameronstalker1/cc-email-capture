@@ -172,12 +172,10 @@ trait SchedulerService extends SimpleMongoConnection  {
       var sentEmails: Int = 0
 
       Akka.system.scheduler.schedule(ApplicationConfig.mailSendingDelayMS milliseconds, ApplicationConfig.mailSendingIntervalSec seconds) {
-        Logger.info("Scheduling...")
 
         if (emailsToSend.nonEmpty) {
           val email = emailsToSend.head.trim
           auditService.sendingScheduledEmails(email, "process", None)
-          Logger.warn(s"Email to process: ${email}")
           emailService.send(ApplicationConfig.mailTemplate, email, "scheduler").map { result =>
             auditService.sendingScheduledEmails(email, "success", Some(result.status))
             emailsToSend = emailsToSend.tail
@@ -209,9 +207,7 @@ trait SchedulerService extends SimpleMongoConnection  {
             }
           }
         }
-        Logger.info("End of if block...")
       }
-      Logger.info("Scheduling Completed...")
     }
   }
 
