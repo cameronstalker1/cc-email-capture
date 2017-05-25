@@ -67,7 +67,7 @@ class RegistrationController @Inject()(val messagesApi: MessagesApi) extends Bas
   def saveAndSendEmail(registration: Registration)(implicit hc: HeaderCarrier): Future[Result] = {
     registrationService.insertOrUpdate(registration).flatMap {
       case true => {
-        registration.dob.map { dob =>
+        registration.dob.get.map { dob =>
           auditService.sendDOB(Map("dob" -> dob.toString))
         }
         auditEmailLocationCount()
