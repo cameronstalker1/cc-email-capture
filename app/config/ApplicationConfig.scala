@@ -60,4 +60,8 @@ object ApplicationConfig extends ServicesConfig {
 
   val mailCountEnabled: Boolean = getString("mail.count.enabled").toBoolean
 
+  val mailCountByAgeEnabled: Boolean = getString("mail.count.by.age.enabled").toBoolean
+  val mailCountAgesList: List[Int] = Try(getListString("mail.count.by.age.ages", ",").map(_.toInt)).getOrElse(List())
+  val mailCountByAgeSentEmails: List[Boolean] = Try(getListString("mail.count.by.age.sent.emails", ",").map(_.toBoolean)).getOrElse(List())
+
 }

@@ -31,7 +31,8 @@ class MessageServiceSpec extends UnitSpec with MockitoSugar with FakeCCEmailAppl
     override val mongoConnectionUri = ""
     override val messageRepository = mock[MessageRepository]
   }
-  
+
+
   "Message Service" should {
     "store a message containing email if the email doesn't exist in the database" in {
       when(

@@ -16,7 +16,7 @@
 
 package repositories
 
-import org.joda.time.LocalDateTime
+import org.joda.time.{LocalDate, LocalDateTime}
 import config.ApplicationConfig
 import config.ApplicationConfig._
 import models.Registration
@@ -32,7 +32,16 @@ import scala.concurrent.Future
 
 class RegistrationRepository()(implicit mongo: () => DB)
   extends ReactiveRepository[Registration, BSONObjectID](csiRegistrationCollection, mongo, Registration.registrationFormat,
-    ReactiveMongoFormats.objectIdFormats)  {
+    ReactiveMongoFormats.objectIdFormats) with FilterHelper {
+
+  def getEmailsByAge(age: Option[Int], sentMails: Boolean): Future[List[String]] = {
+    val filter: JsObject = builfAgeFilter(age, sentMails, LocalDate.now)
+    collection.find(filter).cursor[Registration]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
+  }
 
   def countEmails(withDOB: Boolean): Future[Int] = {
     val filter = Json.obj(
