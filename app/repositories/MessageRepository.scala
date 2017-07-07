@@ -16,10 +16,9 @@
 
 package repositories
 
-import org.joda.time.LocalDateTime
+import org.joda.time.{LocalDate, LocalDateTime, DateTime}
 import config.ApplicationConfig
 import models.{Registration, Message}
-import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.api._
@@ -31,7 +30,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class MessageRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[Message, BSONObjectID]("Email", mongo, Message.formats, ReactiveMongoFormats.objectIdFormats)   {
+  extends ReactiveRepository[Message, BSONObjectID]("Email", mongo, Message.formats, ReactiveMongoFormats.objectIdFormats) with FilterHelper {
+
+  def getEmailsByAge(age: Option[Int], sentMails: Boolean): Future[List[String]] = {
+    val filter: JsObject = builfAgeFilter(age, sentMails, LocalDate.now)
+    collection.find(filter).cursor[Message]().collect[List]().map(
+      _.map(
+        _.emailAddress
+      )
+    )
+  }
 
   def countEmails(withDOB: Boolean): Future[Int] = {
     val filter = Json.obj(

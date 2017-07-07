@@ -102,5 +102,27 @@ object CcGlobal extends DefaultMicroserviceGlobal with RunMode {
       }
     }
 
+    if(ApplicationConfig.mailCountByAgeEnabled) {
+      ApplicationConfig.mailCountByAgeSentEmails.foreach { sentMails =>
+        MessageService.getEmailsByAge(age = None, sentMails = sentMails).flatMap { calc =>
+          Logger.warn(s"Age: all, sent: ${sentMails} from cc: ${calc.size}")
+          RegistrationService.getEmailsByAge(age = None, sentMails = sentMails).map { csi =>
+            Logger.warn(s"Age: all, sent: ${sentMails} from csi: ${csi.size}")
+            Logger.warn(s"Age: all, sent: ${sentMails} unique from cc + csi: ${(calc ++ csi).distinct.size}")
+          }
+        }
+        ApplicationConfig.mailCountAgesList.foreach { age =>
+          MessageService.getEmailsByAge(age = Some(age), sentMails = sentMails).flatMap { calc =>
+            Logger.warn(s"Age: ${age}, sent: ${sentMails} from cc: ${calc.size}")
+            RegistrationService.getEmailsByAge(age = Some(age), sentMails = sentMails).map { csi =>
+              Logger.warn(s"Age: ${age}, sent: ${sentMails} from csi: ${csi.size}")
+              Logger.warn(s"Age: ${age}, sent: ${sentMails} unique from cc + csi: ${(calc ++ csi).distinct.size}")
+            }
+          }
+        }
+      }
+    }
+
+
   }
 }

@@ -19,6 +19,7 @@ package services
 import config.ApplicationConfig
 import models.Message
 import play.api.Logger
+import play.api.libs.json.JsObject
 import reactivemongo.api.FailoverStrategy
 import uk.gov.hmrc.mongo.SimpleMongoConnection
 import repositories.MessageRepository
@@ -34,6 +35,10 @@ object MessageService extends MessageService with RunMode {
 trait MessageService extends SimpleMongoConnection {
   val failoverStrategy: Option[FailoverStrategy] = None // use the default by supplying None (see ReactiveMongoHelper)
   val messageRepository: MessageRepository
+
+  def getEmailsByAge(age: Option[Int], sentMails: Boolean): Future[List[String]] = {
+    messageRepository.getEmailsByAge(age, sentMails)
+  }
 
   def storeMessage(message: Message) : Future[Message] = {
     messageRepository.storeMessage(message)
