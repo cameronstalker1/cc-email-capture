@@ -23,11 +23,11 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsObject
 import services.{AuditEvents, RegistrationService, EmailService}
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class RegistrationController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {

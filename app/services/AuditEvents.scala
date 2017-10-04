@@ -18,8 +18,8 @@ package services
 
 import models.Message
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.model.DataEvent
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AuditEvents extends AuditEvents {
   override lazy val customAuditConnector = AuditService

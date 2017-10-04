@@ -19,12 +19,12 @@ package controllers
 import com.kenshoo.play.metrics.PlayModule
 import org.scalatest.Suite
 import org.scalatestplus.play.OneAppPerSuite
-import uk.gov.hmrc.play.http.HeaderCarrier
 import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import akka.stream.Materializer
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait FakeCCEmailApplication extends OneAppPerSuite {
   this: Suite =>

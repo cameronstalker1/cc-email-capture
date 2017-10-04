@@ -27,12 +27,12 @@ import play.api.mvc._
 import reactivemongo.core.errors.ReactiveMongoException
 import services.{AuditEvents, EmailService, MessageService, SchedulerService}
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import utils.JsonConstructor
+import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 
 @Singleton
 class EmailCaptureController @Inject()(val messagesApi: MessagesApi) extends BaseController with ServicesConfig with I18nSupport {

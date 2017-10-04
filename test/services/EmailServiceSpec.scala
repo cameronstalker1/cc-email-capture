@@ -27,6 +27,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import play.api.test.Helpers._
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ BadGatewayException, HeaderCarrier, HttpGet, HttpPost, HttpReads, HttpResponse }
 
 class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData with FakeCCEmailApplication {
 

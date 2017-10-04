@@ -16,9 +16,9 @@
 
 package repositories
 
-import org.joda.time.{LocalDate, LocalDateTime, DateTime}
+import org.joda.time.{DateTime, LocalDate, LocalDateTime}
 import config.ApplicationConfig
-import models.{Registration, Message}
+import models.{Message, Registration}
 import play.api.Logger
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.api._

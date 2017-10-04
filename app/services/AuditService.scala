@@ -18,10 +18,10 @@ package services
 
 import config.MicroserviceAuditConnector
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector => Auditing}
-import uk.gov.hmrc.play.audit.model.AuditEvent
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.model.DataEvent
 
 import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.http.HeaderCarrier
 
 object AuditService extends AuditService {
   override lazy val auditConnector = MicroserviceAuditConnector
@@ -31,6 +31,6 @@ trait AuditService {
 
   val auditConnector: Auditing
 
-  def sendEvent(event: AuditEvent)(implicit hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext): Unit =
+  def sendEvent(event: DataEvent)(implicit hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext): Unit =
     auditConnector.sendEvent(event)
 }

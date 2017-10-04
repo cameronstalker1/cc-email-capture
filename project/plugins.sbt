@@ -5,6 +5,8 @@ resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/
 
 resolvers += Resolver.url("scoverage-bintray", url("https://dl.bintray.com/sksamuel/sbt-plugins/"))(Resolver.ivyStylePatterns)
 
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.2")
+
 addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.4.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "0.9.0")

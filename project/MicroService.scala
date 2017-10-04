@@ -54,7 +54,7 @@ trait MicroService {
         Resolver.bintrayRepo("hmrc", "releases"),
         Resolver.jcenterRepo
       ),
-      scalaVersion := "2.11.7",
+      scalaVersion := "2.11.11",
       crossScalaVersions := Seq("2.11.7"),
       ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
     )

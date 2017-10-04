@@ -24,11 +24,11 @@ import org.mockito.Matchers._
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import services.{AuditEvents, RegistrationService, EmailService}
-import uk.gov.hmrc.play.http.{HttpResponse, HeaderCarrier}
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.test.Helpers._
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class RegistrationControllerSpec extends UnitSpec with MockitoSugar with RegistrationData with FakeCCEmailApplication {
 

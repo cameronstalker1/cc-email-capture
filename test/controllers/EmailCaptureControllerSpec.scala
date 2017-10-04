@@ -27,13 +27,13 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import reactivemongo.core.errors.ReactiveMongoException
 import services.{AuditEvents, EmailService, MessageService, SchedulerService}
-import uk.gov.hmrc.play.http.{HttpResponse, InternalServerException}
 import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.Matchers.{eq => mockEq, _}
 import scala.concurrent._
 import models.Message
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.i18n.Messages.Implicits.applicationMessagesApi
+import uk.gov.hmrc.http.InternalServerException
 
 class EmailCaptureControllerSpec extends UnitSpec with MockitoSugar with FakeCCEmailApplication {
 

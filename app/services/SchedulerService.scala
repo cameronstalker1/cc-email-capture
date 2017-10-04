@@ -25,10 +25,10 @@ import reactivemongo.api.FailoverStrategy
 import repositories.{MessageRepository, RegistrationRepository}
 import uk.gov.hmrc.lock.LockRepository
 import uk.gov.hmrc.mongo.SimpleMongoConnection
-import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import concurrent.duration._
+import uk.gov.hmrc.http.HeaderCarrier
 
 object SchedulerService extends SchedulerService {
   override val mongoConnectionUri: String = ApplicationConfig.mongoConnectionUri

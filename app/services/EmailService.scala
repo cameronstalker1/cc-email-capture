@@ -21,11 +21,12 @@ import models.{Registration, SendEmailRequest, Message, IsValidEmail}
 import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.emailaddress.EmailAddress
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 import scala.concurrent.Future
+import uk.gov.hmrc.http
+import uk.gov.hmrc.http.{ BadGatewayException, HeaderCarrier, HttpGet, HttpPost, HttpResponse }
 
 /**
 * Created by Povilas Lape on 4/8/15.
@@ -47,20 +48,20 @@ trait EmailService extends ServicesConfig {
     httpGetRequest.GET[IsValidEmail](serviceUrl + s"/hmrc/validate-email-address?email=$email").map {
       result =>
         result.valid match {
-          case true => HttpResponse.apply(OK)
+          case true => HttpResponse(OK)
           case false =>
             Logger.warn(s"\n ========= EmailService.checkEmail: Email is not valid ========= \n")
-            HttpResponse.apply(NOT_FOUND)
+            HttpResponse(NOT_FOUND)
       }
     } recover {
       case e : BadGatewayException =>
         Logger.warn(s"\n ========= EmailService.checkEmail: BadGatewayException while validating email" +
           s"mailgun microservice (check email): ${e.getMessage} ========= \n")
-        HttpResponse.apply(BAD_GATEWAY)
+        HttpResponse(BAD_GATEWAY)
       case e : Exception =>
         Logger.warn(s"\n ========= EmailService.checkEmail: Exception while validating email mailgun microservice " +
           s"(check email): ${e.getMessage} ========= \n")
-        HttpResponse.apply(SERVICE_UNAVAILABLE)
+        HttpResponse(SERVICE_UNAVAILABLE)
     }
   }
 
@@ -96,11 +97,11 @@ trait EmailService extends ServicesConfig {
       case e : BadGatewayException =>
         Logger.error(s"\n ========= EmailService.sendEmail: BadGatewayException while sending email mailgun microservice " +
           s"(send email): ${e.getMessage} ========= \n")
-        HttpResponse.apply(BAD_GATEWAY)
+        HttpResponse(BAD_GATEWAY)
       case e : Exception =>
         Logger.error(s"\n ========= EmailService.sendEmail: Exception while sending email mailgun microservice" +
           s" (send email): ${e.getMessage} ========= \n")
-        HttpResponse.apply(SERVICE_UNAVAILABLE)
+        HttpResponse(SERVICE_UNAVAILABLE)
     }
   }
 
