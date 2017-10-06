@@ -25,7 +25,6 @@ import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 import scala.concurrent.Future
-import uk.gov.hmrc.http
 import uk.gov.hmrc.http.{ BadGatewayException, HeaderCarrier, HttpGet, HttpPost, HttpResponse }
 
 /**
