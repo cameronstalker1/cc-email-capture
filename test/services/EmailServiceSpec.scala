@@ -15,7 +15,7 @@
  */
 
 package services
-
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import controllers.FakeCCEmailApplication
 import fixtures.RegistrationData
 import models.SendEmailRequest
@@ -45,10 +45,11 @@ class EmailServiceSpec extends UnitSpec with MockitoSugar with RegistrationData 
       ("return INTERNAL_SERVER_ERROR if posts throws any exception", Future.failed(new Exception("Exception")), SERVICE_UNAVAILABLE)
     )
 
-    testCases.foreach { case (testMessage, mockResult, expectedStatus) =>
+    testCases.foreach { case (testMessage, mockResult, expectedStatus)   =>
         testMessage in {
           when(
-            mockPOST.POST[SendEmailRequest, HttpResponse](anyString, any[SendEmailRequest], any[Seq[(String, String)]])(any[Writes[SendEmailRequest]], any[HttpReads[HttpResponse]], any[HeaderCarrier])
+            mockPOST.POST[SendEmailRequest, HttpResponse](anyString, any[SendEmailRequest], any[Seq[(String, String)]])
+              (any[Writes[SendEmailRequest]], any[HttpReads[HttpResponse]], any[HeaderCarrier], any())
           ).thenReturn(
             mockResult
           )

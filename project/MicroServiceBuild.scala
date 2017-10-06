@@ -36,7 +36,7 @@ private object AppDependencies {
   private val scalaTestPlusVersion = "1.5.1"
   private val mockitoVersion = "1.9.0"
   private val pegDownVersion = "1.6.0"
-  private val reactiveMongoTestVersion = "3.0.0"
+  private val reactiveMongoTestVersion = "2.0.0"
   private val mongoLock = "4.1.0"
 
   val compile = Seq(
