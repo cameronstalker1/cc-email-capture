@@ -55,7 +55,7 @@ trait MicroService {
         Resolver.jcenterRepo
       ),
       scalaVersion := "2.11.11",
-      crossScalaVersions := Seq("2.11.7"),
+      crossScalaVersions := Seq("2.11.11"),
       ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
     )
 }
